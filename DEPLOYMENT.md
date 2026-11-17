@@ -1,0 +1,68 @@
+# 🚀 Despliegue de Punto Maple
+
+## URLs públicas
+
+| Recurso | URL |
+|---|---|
+| **Tienda** | https://punto-maple-martins-projects-60ef29df.vercel.app |
+| **Panel de operaciones** | https://punto-maple-martins-projects-60ef29df.vercel.app/admin |
+| **API (health)** | https://punto-maple-backend.onrender.com/api/health |
+| **Repositorio** | https://github.com/mabregu/punto-maple |
+
+> La URL `*.vercel.app` es la de production. Si se agrega un dominio propio, Vercel lo tutorializará automáticamente.
+
+## Accesos
+
+- **Token del panel interno (`/admin`)**: `PM-ADM-c38316d30b8340699433b91a`
+  - Se envía como header `x-admin-token` a los endpoints protegidos.
+  - **Recomendación:** rotarlo en Render → Environment → `ADMIN_TOKEN`.
+- **WhatsApp configurado**: `5491134591224` (corresponde a 11 3459-1224).
+
+## Infraestructura
+
+| Plataforma | Recurso | Detalle |
+|---|---|---|
+| Vercel | Proyecto `punto-maple` | Next.js 15, root directory `frontend`, Node 24.x |
+| Render | Web service `punto-maple-backend` | Docker (`backend/Dockerfile`), plan free, región Oregon |
+| Neon | Proyecto `mabregu` (id `young-bar-40958993`) | Rama `punto-maple` (`br-icy-morning-a5elpeze`), base `punto_maple`, Postgres 16 |
+
+### Variables de entorno
+
+**Vercel** (`punto-maple`):
+- `NEXT_PUBLIC_API_URL` = `https://punto-maple-backend.onrender.com`
+- `NEXT_PUBLIC_WHATSAPP_PHONE` = `5491134591224`
+- `NEXT_PUBLIC_FREE_SHIPPING_MAPLES_THRESHOLD` = `3`
+- `NEXT_PUBLIC_SHIPPING_COST_ARS` = `1500`
+
+**Render** (`punto-maple-backend`):
+- `DATABASE_URL` (connection string de Neon, pooler)
+- `ADMIN_TOKEN`
+- `FREE_SHIPPING_MAPLES_THRESHOLD` = `3`
+- `SHIPPING_COST_ARS` = `1500`
+
+## Flujo funcional verificado
+
+1. La tienda carga el catálogo desde `GET /api/products` (con fallback local si Render está durmiendo).
+2. El carrito calcula el progreso hacia los 3 maples y el envío gratis.
+3. Al confirmar, `POST /api/orders` **valida precios y calcula totales en el servidor**, persiste el pedido en Neon y devuelve el texto listo para WhatsApp.
+4. Se abre `wa.me/5491134591224` con el resumen y el código de pedido (`PM-YYYYMMDD-XXXX`).
+5. El panel `/admin` lista pedidos, permite cambiar estados y moderar reseñas.
+
+## Verificación rápida
+
+```bash
+curl https://punto-maple-backend.onrender.com/api/health
+curl https://punto-maple-backend.onrender.com/api/products
+curl -X POST https://punto-maple-backend.onrender.com/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Prueba","phone":"2215550000","zone":"Ensenada","street":"Calle 1","items":[{"productId":"pack-3-maples","quantity":1}]}'
+```
+
+## Próximos pasos (roadmap)
+
+- [ ] Integrar **Mercado Pago** (Checkout Pro → Bricks → Suscripciones).
+- [ ] **WhatsApp Cloud API** para notificaciones automáticas (confirmación, "en camino", reseña).
+- [ ] Formulario público de **reseñas** post-entrega (hoy existe la API y la moderación en `/admin`).
+- [ ] **Suscripción "Club del Maple"** con cobro recurrente.
+- [ ] Dominio propio y certificado (Vercel lo gestiona).
+- [ ] Rotar `ADMIN_TOKEN` y mover secretos a un gestor.
