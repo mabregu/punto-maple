@@ -134,7 +134,13 @@ export class PaymentsService {
       return { received: true, ignored: true, reason: 'pago ya aprobado' };
     }
 
-    if (status === 'approved') {
+    if (status === 'refunded' || status === 'charged_back') {
+      await pool.query(
+        `UPDATE orders SET payment_status = $1, status = 'cancelado', updated_at = now()
+         WHERE code = $2`,
+        [status, code],
+      );
+    } else if (status === 'approved') {
       await pool.query(
         `UPDATE orders SET payment_status = 'approved', payment_id = $1, paid_at = now(),
          status = 'pagado', updated_at = now() WHERE code = $2`,
