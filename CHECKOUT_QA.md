@@ -52,7 +52,7 @@ La variable `ADMIN_TOKEN` habilita los dos últimos tests (acceso al panel y lim
 | 9 | **No hace falta enviarlo** para validar; si querés probar extremo a extremo, enviarlo y ver que llegue | El chat se abre con el número del negocio |
 | 10 | Abrir `/admin`, ingresar el token | El pedido aparece con badge **PRUEBA**, zone, dirección y total correctos |
 | 11 | Cambiar el estado a "preparando" y "entregado" | El badge cambia y la métrica "Pedidos activos" baja |
-| 12 | Probar un pedido de 2,4 maples (2×30 + 1×12) | Envío $1.500, descuento -$1.350 y total **$12.150** |
+| 12 | Probar un pedido de 2,4 maples (2×30 + 1×12) | Subtotal $12.000, envío $1.500, descuento -$1.200 y total **$12.300** |
 
 ### Casos límite (opcional pero recomendado)
 - [ ] Borrar todos los productos del carrito → el botón se deshabilita.

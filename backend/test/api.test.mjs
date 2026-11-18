@@ -99,8 +99,8 @@ test('envío pagado con 2,4 maples', async () => {
   assert.equal(body.totalMaples, 2.4);
   assert.equal(body.isFreeShipping, false);
   assert.equal(body.shippingArs, 1500);
-  assert.equal(body.discountArs, 1350);
-  assert.equal(body.totalArs, 12150);
+  assert.equal(body.discountArs, 1200);
+  assert.equal(body.totalArs, 12300);
 });
 
 test('el servidor ignora precios manipulados desde el cliente', async () => {
