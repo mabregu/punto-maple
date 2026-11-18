@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS orders (
   zone           TEXT NOT NULL,
   street         TEXT NOT NULL,
   between_street TEXT,
+  delivery_notes TEXT,
   pay_method     TEXT NOT NULL DEFAULT 'Efectivo al recibir',
   subtotal_ars   INTEGER NOT NULL,
   discount_ars   INTEGER NOT NULL DEFAULT 0,

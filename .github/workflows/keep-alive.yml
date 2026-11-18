@@ -1,13 +1,13 @@
 name: Keep Alive - Punto Maple
 
 # Render (plan free) duerme el servicio tras ~15 min sin tráfico.
-# Este workflow lo despierta cada 10 minutos durante el horario comercial de Argentina.
-# GitHub Actions usa UTC. Argentina es UTC-3, por eso 11-21 UTC = 08:00-18:50 local.
-# Para mantenerlo despierto 24/7, cambiar el cron por: '*/10 * * * *'
+# Este workflow lo despierta cada 10 minutos, las 24 horas.
+# Para limitarlo a horario comercial de Argentina (08:00-18:50 local, UTC-3):
+#   cron: '*/10 11-21 * * *'
 
 on:
   schedule:
-    - cron: '*/10 11-21 * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:

@@ -62,9 +62,9 @@ curl -X POST https://punto-maple-backend.onrender.com/api/orders \
 
 ## Keep alive de Render
 
-Render (plan free) suspende el servicio tras ~15 min de inactividad. Hay un workflow programado en `.github/workflows/keep-alive.yml` que hace ping a `/api/health` cada 10 minutos de **08:00 a 18:50 (hora Argentina)**, usando GitHub Actions (gratis en repo público).
+Render (plan free) suspende el servicio tras ~15 min de inactividad. Hay un workflow programado en `.github/workflows/keep-alive.yml` que hace ping a `/api/health` cada 10 minutos **las 24 horas**, usando GitHub Actions (gratis en repo público).
 
-- Para hacerlo **24/7**: cambiar el cron por `'*/10 * * * *'`.
+- Para limitarlo a horario comercial (08:00–18:50 Argentina): cambiar el cron por `'*/10 11-21 * * *'`.
 - El repo es público; si se vuelve privado, revisar la cuota de minutos de Actions.
 - Se puede probar manualmente con `workflow_dispatch` desde Actions → *Keep Alive - Punto Maple* → *Run workflow*.
 

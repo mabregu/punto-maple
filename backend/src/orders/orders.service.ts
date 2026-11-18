@@ -12,6 +12,7 @@ export interface CreateOrderDto {
   zone: string;
   street: string;
   between?: string;
+  deliveryNotes?: string;
   payMethod: string;
   items: OrderItemInput[];
   testMode?: boolean;
@@ -84,8 +85,9 @@ export class OrdersService {
       await client.query(
         `INSERT INTO orders
           (code, customer_name, phone, zone, street, between_street, pay_method,
-           subtotal_ars, discount_ars, shipping_ars, total_ars, total_maples, status, is_test)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'confirmado',$13)`,
+           subtotal_ars, discount_ars, shipping_ars, total_ars, total_maples, status, is_test,
+           delivery_notes)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'confirmado',$13,$14)`,
         [
           code,
           dto.customerName.trim(),
@@ -100,6 +102,7 @@ export class OrdersService {
           total,
           Number(totalMaples.toFixed(2)),
           dto.testMode === true,
+          dto.deliveryNotes?.trim() || null,
         ],
       );
       for (const line of lines) {
@@ -123,6 +126,7 @@ export class OrdersService {
       customerName: dto.customerName.trim(),
       zone: dto.zone.trim(),
       street: dto.street.trim(),
+      deliveryNotes: dto.deliveryNotes?.trim() || null,
       payMethod,
       items: lines,
       subtotalArs: subtotal,
@@ -135,6 +139,7 @@ export class OrdersService {
       whatsappText: this.buildWhatsappText({
         code, customerName: dto.customerName.trim(), phone: dto.phone,
         zone: dto.zone.trim(), street: dto.street.trim(), between: dto.between,
+        deliveryNotes: dto.deliveryNotes,
         payMethod, lines, subtotal, discount, shipping, total,
       }),
     };
@@ -153,6 +158,7 @@ export class OrdersService {
       customerName: order.customer_name,
       zone: order.zone,
       street: order.street,
+      deliveryNotes: order.delivery_notes,
       status: order.status,
       subtotalArs: Number(order.subtotal_ars),
       discountArs: Number(order.discount_ars),
@@ -171,7 +177,7 @@ export class OrdersService {
 
   async findAll() {
     const { rows } = await pool.query(`
-      SELECT code, customer_name, phone, zone, street, between_street, pay_method,
+      SELECT code, customer_name, phone, zone, street, between_street, delivery_notes, pay_method,
              subtotal_ars, discount_ars, total_ars, total_maples, status,
              payment_status, payment_id, is_test, created_at
       FROM orders ORDER BY created_at DESC LIMIT 100
@@ -198,7 +204,7 @@ export class OrdersService {
 
   private buildWhatsappText(o: {
     code: string; customerName: string; phone?: string; zone: string; street: string;
-    between?: string; payMethod?: string;
+    between?: string; deliveryNotes?: string; payMethod?: string;
     lines: Array<{ name: string; quantity: number; lineTotal: number }>;
     subtotal: number; discount: number; shipping: number; total: number;
   }): string {
@@ -211,6 +217,7 @@ export class OrdersService {
     text += `*Cliente:* ${o.customerName}\n`;
     text += `*Zona:* ${o.zone}\n`;
     text += `*Dirección:* ${o.street}${o.between ? ` (Entre: ${o.between})` : ''}\n`;
+    if (o.deliveryNotes) text += `*Referencias:* ${o.deliveryNotes}\n`;
     if (o.phone) text += `*Teléfono:* ${o.phone}\n`;
     text += `*Forma de Pago:* ${o.payMethod || 'Efectivo al recibir'}\n\n`;
 

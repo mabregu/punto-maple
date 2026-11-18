@@ -45,10 +45,10 @@ La variable `ADMIN_TOKEN` habilita los dos últimos tests (acceso al panel y lim
 | 2 | Agregar 1 maple de 30 | Barra al 33%; carrito dice "$4.900 + $1.500 de envío" |
 | 3 | Sumar 2 maples más (total 3) | Barra verde: "¡Tenés ENVÍO GRATIS asegurado!"; envío $0; con Efectivo: descuento -$1.470 y total **$13.230**; con Transferencia: total $14.700 |
 | 4 | Abrir el carrito | Precios, cantidades y `+ / -` correctos; al bajar a 2 el envío vuelve a $1.500 |
-| 5 | Completar nombre, teléfono, zona y calle | Si falta alguno, el botón muestra el aviso (no se crea el pedido) |
+| 5 | Completar nombre, teléfono, zona y calle; en *Referencias* escribir "Portón negro, casa de dos plantas" | Si falta alguno de los obligatorios, el botón muestra el aviso. Las referencias son opcionales y aparecen en el paso 8 |
 | 6 | Elegir "Transferencia" | El mensaje dice *Forma de Pago: Transferencia (CBU/Alias)* y **no** incluye línea de descuento; al volver a Efectivo aparece "Descuento por pago en efectivo (10%)" |
 | 7 | Tocar "Confirmar Pedido por WhatsApp" | Se abre `wa.me/5491134591224` con el resumen **ya redactado** |
-| 8 | Revisar el mensaje | Código `PM-YYYYMMDD-XXXX`, acentos correctos (Martín, Nº), **sin emojis ni símbolos raros**, negritas con `*`, viñetas con `-`, línea de descuento y saludo final |
+| 8 | Revisar el mensaje | Código `PM-YYYYMMDD-XXXX`, acentos correctos (Martín, Nº), **sin emojis ni símbolos raros**, negritas con `*`, viñetas con `-`, línea `*Referencias:* Portón negro, casa de dos plantas`, línea de descuento y saludo final |
 | 9 | **No hace falta enviarlo** para validar; si querés probar extremo a extremo, enviarlo y ver que llegue | El chat se abre con el número del negocio |
 | 10 | Abrir `/admin`, ingresar el token | El pedido aparece con badge **PRUEBA**, zone, dirección y total correctos |
 | 11 | Cambiar el estado a "preparando" y "entregado" | El badge cambia y la métrica "Pedidos activos" baja |

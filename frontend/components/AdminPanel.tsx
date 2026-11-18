@@ -11,6 +11,7 @@ interface Order {
   zone: string;
   street: string;
   between_street: string | null;
+  delivery_notes: string | null;
   pay_method: string;
   subtotal_ars: number;
   discount_ars: number;
@@ -298,6 +299,9 @@ export default function AdminPanel() {
                     <p className="font-bold text-gray-800">{o.customer_name}</p>
                     <p className="text-gray-500">{o.zone} · {o.street}</p>
                     <p className="text-gray-500">{o.phone || '—'}</p>
+                    {o.delivery_notes && (
+                      <p className="text-amber-700">Ref: {o.delivery_notes}</p>
+                    )}
                   </div>
                   <div>
                     <p className="font-bold text-gray-900">${Number(o.total_ars).toLocaleString('es-AR')}</p>

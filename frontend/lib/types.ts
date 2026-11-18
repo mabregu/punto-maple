@@ -18,6 +18,7 @@ export interface CheckoutForm {
   zone: string;
   street: string;
   between: string;
+  deliveryNotes: string;
   payMethod: string;
 }
 

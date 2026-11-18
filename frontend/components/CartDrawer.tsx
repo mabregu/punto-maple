@@ -182,6 +182,13 @@ export default function CartDrawer({
                 placeholder="Entre calles o Depto / Piso"
                 className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
               />
+              <input
+                type="text"
+                value={form.deliveryNotes}
+                onChange={(e) => onFormChange('deliveryNotes', e.target.value)}
+                placeholder="Referencias: portón negro, casa de dos plantas… (opcional)"
+                className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+              />
             </div>
 
             <div>

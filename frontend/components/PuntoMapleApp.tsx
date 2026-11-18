@@ -19,6 +19,7 @@ const EMPTY_FORM: CheckoutForm = {
   zone: 'Ensenada',
   street: '',
   between: '',
+  deliveryNotes: '',
   payMethod: 'Efectivo al recibir',
 };
 

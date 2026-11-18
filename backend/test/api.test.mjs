@@ -76,6 +76,16 @@ test('mensaje de WhatsApp sin emojis ni viñetas unicode', async () => {
   assert.match(body.whatsappText, /^- 3x Maple Clásico/m);
 });
 
+test('incluye referencias de entrega en el pedido y en el mensaje', async () => {
+  const notes = 'Portón negro, casa de dos plantas';
+  const { status, body } = await postOrder({ street: 'Calle 140 Nº 503', between: '9 y 9bis', deliveryNotes: notes });
+  assert.equal(status, 201);
+  assert.equal(body.deliveryNotes, notes);
+  assert.match(body.whatsappText, /\*Referencias:\* Portón negro, casa de dos plantas/);
+  const detail = await api(`/api/orders/${body.code}`);
+  assert.equal(detail.body.deliveryNotes, notes);
+});
+
 test('transferencia no aplica descuento', async () => {
   const { status, body } = await postOrder({
     payMethod: 'Transferencia (CBU/Alias)',
