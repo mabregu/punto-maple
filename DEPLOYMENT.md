@@ -60,6 +60,14 @@ curl -X POST https://punto-maple-backend.onrender.com/api/orders \
   -d '{"customerName":"Prueba","phone":"2215550000","zone":"Ensenada","street":"Calle 1","items":[{"productId":"pack-3-maples","quantity":1}]}'
 ```
 
+## Keep alive de Render
+
+Render (plan free) suspende el servicio tras ~15 min de inactividad. Hay un workflow programado en `.github/workflows/keep-alive.yml` que hace ping a `/api/health` cada 10 minutos de **08:00 a 18:50 (hora Argentina)**, usando GitHub Actions (gratis en repo público).
+
+- Para hacerlo **24/7**: cambiar el cron por `'*/10 * * * *'`.
+- El repo es público; si se vuelve privado, revisar la cuota de minutos de Actions.
+- Se puede probar manualmente con `workflow_dispatch` desde Actions → *Keep Alive - Punto Maple* → *Run workflow*.
+
 ## Edición de precios
 
 Desde `/admin` → **Productos y precios** se puede cambiar el precio, la equivalencia en maples (umbral de envío gratis) y la visibilidad de cada SKU sin tocar código ni redesplegar. Los pedidos ya realizados conservan el precio histórico en `order_items`.

@@ -1,0 +1,23 @@
+name: Keep Alive - Punto Maple
+
+# Render (plan free) duerme el servicio tras ~15 min sin tráfico.
+# Este workflow lo despierta cada 10 minutos durante el horario comercial de Argentina.
+# GitHub Actions usa UTC. Argentina es UTC-3, por eso 11-21 UTC = 08:00-18:50 local.
+# Para mantenerlo despierto 24/7, cambiar el cron por: '*/10 * * * *'
+
+on:
+  schedule:
+    - cron: '*/10 11-21 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping health endpoint
+        run: |
+          echo "Ping a $(date -u +'%Y-%m-%dT%H:%M:%SZ') UTC"
+          curl --fail --silent --show-error --max-time 30 \
+            https://punto-maple-backend.onrender.com/api/health
+          echo
