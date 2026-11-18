@@ -91,6 +91,29 @@ export class PaymentsService {
     if (!response.ok) return { received: true, ignored: true, reason: 'no se pudo consultar el pago' };
 
     const payment: any = await response.json();
+    return this.applyPayment(payment);
+  }
+
+  /** Respaldo: cuando el cliente vuelve del checkout, consultamos MP por external_reference. */
+  async verifyPayment(code: string) {
+    const { rows } = await pool.query(`SELECT code FROM orders WHERE code = $1`, [code]);
+    if (rows.length === 0) throw new NotFoundException('Pedido no encontrado');
+
+    const response = await fetch(
+      `${MP_API}/v1/payments/search?external_reference=${encodeURIComponent(code)}`,
+      { headers: { Authorization: `Bearer ${accessToken()}` } },
+    );
+    if (!response.ok) return { received: true, ignored: true, reason: 'no se pudo consultar MP' };
+
+    const result: any = await response.json();
+    const payments = result.results || [];
+    const payment = payments.find((p: any) => p.status === 'approved') || payments[0];
+    if (!payment) return { received: true, ignored: true, reason: 'sin pago para este pedido' };
+
+    return this.applyPayment(payment);
+  }
+
+  private async applyPayment(payment: any) {
     const code = payment.external_reference;
     const status = payment.status;
     if (!code || !status) return { received: true, ignored: true, reason: 'pago sin referencia' };

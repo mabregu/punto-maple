@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchOrder, type OrderStatusDto } from '@/lib/api';
+import { fetchOrder, verifyPayment, type OrderStatusDto } from '@/lib/api';
 
 interface Props {
   code: string;
@@ -16,7 +16,12 @@ export default function OrderStatus({ code, initialStatus }: Props) {
     let active = true;
     const load = async () => {
       const data = await fetchOrder(code);
-      if (active) setOrder(data);
+      if (!active) return;
+      setOrder(data);
+      if (data?.payMethod === 'Mercado Pago' && data?.paymentStatus !== 'approved') {
+        await verifyPayment(code);
+        if (active) setOrder(await fetchOrder(code));
+      }
     };
     load();
     const needsPolling = !order || order.paymentStatus === 'pending';

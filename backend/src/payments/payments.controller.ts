@@ -11,6 +11,11 @@ export class PaymentsController {
     return this.paymentsService.createPreference(body.code);
   }
 
+  @Post('verify')
+  verify(@Body() body: { code: string }) {
+    return this.paymentsService.verifyPayment(body.code);
+  }
+
   @Post('webhook')
   async webhook(
     @Body() body: any,

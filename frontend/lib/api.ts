@@ -62,6 +62,20 @@ export async function fetchOrder(code: string): Promise<OrderStatusDto | null> {
   }
 }
 
+export async function verifyPayment(code: string): Promise<{ received: boolean; status?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/payments/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    if (!res.ok) return { received: false };
+    return res.json();
+  } catch {
+    return { received: false };
+  }
+}
+
 export interface PaymentPreference {
   preferenceId: string;
   initPoint: string;

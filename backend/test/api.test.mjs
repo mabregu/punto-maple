@@ -103,6 +103,16 @@ test('crea preferencia de Mercado Pago en sandbox', async () => {
   assert.equal(body.orderCode, order.code);
 });
 
+test('verificación de respaldo consulta Mercado Pago', async () => {
+  const { body: order } = await postOrder({ payMethod: 'Mercado Pago' });
+  const { status, body } = await api('/api/payments/verify', {
+    method: 'POST',
+    body: JSON.stringify({ code: order.code }),
+  });
+  assert.equal(status, 201);
+  assert.equal(body.received, true);
+});
+
 test('webhook sin datos se ignora sin error', async () => {
   const { status, body } = await api('/api/payments/webhook', {
     method: 'POST',
