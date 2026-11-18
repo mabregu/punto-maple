@@ -84,6 +84,17 @@ curl https://punto-maple-backend.onrender.com/api/health
 
 ---
 
+## C-2. Circuito de Mercado Pago (sandbox)
+
+1. Elegí **💳 Mercado Pago** como medio de pago y confirmá el pedido.
+2. Se abre el checkout sandbox de MP (`sandbox_init_point`). **No** se abre WhatsApp.
+3. Pagá con una tarjeta de prueba MLA (ej. Visa `4509 9535 6623 3704`, venc. `11/30`, CVV `123`, titular `APRO`).
+4. Al volver, la URL debe ser `/pedido/PM-...?status=approved` y mostrar **¡Pago aprobado!**.
+5. Verificá en `/admin` que el pedido tenga badge **PAGADO MP** y estado `pagado`.
+6. Si el webhook no llega (limitación del test user automático), la página de retorno igual consulta MP por `external_reference` y actualiza el pedido.
+
+> Para producción hay que activar la app, configurar el webhook productivo y cargar `MP_WEBHOOK_SECRET` en Render.
+
 ## D. Señales de alerta
 
 - El botón de WhatsApp abre un número distinto a `5491134591224`.

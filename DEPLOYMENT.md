@@ -60,6 +60,25 @@ curl -X POST https://punto-maple-backend.onrender.com/api/orders \
   -d '{"customerName":"Prueba","phone":"2215550000","zone":"Ensenada","street":"Calle 1","items":[{"productId":"pack-3-maples","quantity":1}]}'
 ```
 
+## Mercado Pago
+
+- **App:** `Punto Maple`, ID `6581174382020281` (Checkout Pro, `online_payments`, `self_developed`, site `MLA`).
+- **Sandbox:** webhook configurado en `https://punto-maple-backend.onrender.com/api/payments/webhook`, tópico `payment`.
+- **Test user automático:** seller `3858066704`, app seller `2141164586081201`, buyer `3853745873`.
+- **Credenciales de test** (`MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`) cargadas en Render. `MP_MODE=test`.
+- **Fallback:** si el webhook no llega, la página `/pedido/[code]` llama a `POST /api/payments/verify` y consulta MP por `external_reference`.
+
+### Pendiente de configuración manual (panel de MP)
+
+1. Copiar el **secret completo del webhook** en Render → Environment → `MP_WEBHOOK_SECRET`:
+   https://www.mercadopago.com.ar/developers/panel/app/6581174382020281/webhooks
+   (_el MCP solo muestra los primeros 7 caracteres: `4f2ba9f…`_).
+2. Completar la activación de la app para obtener credenciales **productivas** y configurar el webhook de producción.
+3. Cambiar `MP_MODE=prod` y reemplazar `MP_ACCESS_TOKEN` / `MP_PUBLIC_KEY` por las de producción.
+4. Cargar `FRONTEND_URL` con el dominio propio cuando lo tengas (hoy apunta al `*.vercel.app`).
+
+> Mientras no haya secret, el backend acepta webhooks sin firma **solo en modo test**. En producción se exige firma válida.
+
 ## Pruebas
 
 - Batería automática: `cd backend && ADMIN_TOKEN=<token> npm test` (12 tests, `node:test`).

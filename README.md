@@ -33,6 +33,17 @@ punto-maple/
 - `GET /api/reviews/pending` — moderación (requiere `x-admin-token`)
 - `PATCH /api/reviews/:id/:status` — aprobar/rechazar (requiere `x-admin-token`)
 
+## Pagos con Mercado Pago
+
+Checkout Pro (Preferences API) como tercera opción, junto a Efectivo (-10%) y Transferencia.
+
+- `POST /api/payments/preference` — crea la preferencia y devuelve `initPoint` (sandbox en test).
+- `POST /api/payments/webhook` — valida `x-signature`, consulta `GET /v1/payments/{id}` y actualiza el pedido.
+- `POST /api/payments/verify` — respaldo al volver del checkout; busca el pago por `external_reference`.
+- `/pedido/[code]` — pantalla de resultado con sondeo automático.
+
+Variables: `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`, `MP_WEBHOOK_SECRET`, `MP_MODE`, `FRONTEND_URL`, `MP_APPLICATION_ID`.
+
 ## Pruebas
 
 ```bash
