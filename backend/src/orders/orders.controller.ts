@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post } from '@nestjs/common';
 import { assertAdmin } from '../admin';
 import { CreateOrderDto, OrdersService } from './orders.service';
 
@@ -15,6 +15,12 @@ export class OrdersController {
   findAll(@Headers() headers: Record<string, any>) {
     assertAdmin(headers);
     return this.ordersService.findAll();
+  }
+
+  @Delete('test')
+  deleteTest(@Headers() headers: Record<string, any>) {
+    assertAdmin(headers);
+    return this.ordersService.deleteTestOrders();
   }
 
   @Get(':code')

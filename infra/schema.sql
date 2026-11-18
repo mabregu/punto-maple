@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS orders (
   total_ars      INTEGER NOT NULL,
   total_maples   NUMERIC(6,2) NOT NULL DEFAULT 0,
   status         TEXT NOT NULL DEFAULT 'confirmado',
+  is_test        BOOLEAN NOT NULL DEFAULT false,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );

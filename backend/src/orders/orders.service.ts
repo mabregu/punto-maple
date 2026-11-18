@@ -14,6 +14,7 @@ export interface CreateOrderDto {
   between?: string;
   payMethod: string;
   items: OrderItemInput[];
+  testMode?: boolean;
 }
 
 function orderCode(): string {
@@ -78,8 +79,8 @@ export class OrdersService {
       await client.query(
         `INSERT INTO orders
           (code, customer_name, phone, zone, street, between_street, pay_method,
-           subtotal_ars, shipping_ars, total_ars, total_maples, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'confirmado')`,
+           subtotal_ars, shipping_ars, total_ars, total_maples, status, is_test)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'confirmado',$12)`,
         [
           code,
           dto.customerName.trim(),
@@ -92,6 +93,7 @@ export class OrdersService {
           shipping,
           total,
           Number(totalMaples.toFixed(2)),
+          dto.testMode === true,
         ],
       );
       for (const line of lines) {
@@ -111,6 +113,7 @@ export class OrdersService {
 
     return {
       code,
+      isTest: dto.testMode === true,
       customerName: dto.customerName.trim(),
       zone: dto.zone.trim(),
       street: dto.street.trim(),
@@ -146,6 +149,7 @@ export class OrdersService {
       subtotalArs: Number(order.subtotal_ars),
       shippingArs: Number(order.shipping_ars),
       totalArs: Number(order.total_ars),
+      isTest: order.is_test,
       createdAt: order.created_at,
       items: items.rows,
     };
@@ -154,10 +158,16 @@ export class OrdersService {
   async findAll() {
     const { rows } = await pool.query(`
       SELECT code, customer_name, phone, zone, street, between_street, pay_method,
-             total_ars, total_maples, status, created_at
+             total_ars, total_maples, status, is_test, created_at
       FROM orders ORDER BY created_at DESC LIMIT 100
     `);
     return rows;
+  }
+
+  /** Borra únicamente pedidos marcados como prueba (y sus ítems/reseñas por cascade). */
+  async deleteTestOrders() {
+    const { rowCount } = await pool.query(`DELETE FROM orders WHERE is_test = true`);
+    return { deleted: rowCount ?? 0 };
   }
 
   async updateStatus(code: string, status: string) {

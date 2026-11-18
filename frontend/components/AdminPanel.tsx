@@ -14,6 +14,7 @@ interface Order {
   total_ars: number;
   total_maples: number;
   status: string;
+  is_test: boolean;
   created_at: string;
 }
 
@@ -137,13 +138,13 @@ export default function AdminPanel() {
           <div className="bg-white rounded-xl border border-amber-100 p-4">
             <p className="text-xs text-gray-500">Pedidos activos</p>
             <p className="text-2xl font-black text-gray-900">
-              {orders.filter((o) => o.status !== 'entregado' && o.status !== 'cancelado').length}
+              {orders.filter((o) => !o.is_test && o.status !== 'entregado' && o.status !== 'cancelado').length}
             </p>
           </div>
           <div className="bg-white rounded-xl border border-amber-100 p-4">
             <p className="text-xs text-gray-500">Facturación registrada</p>
             <p className="text-2xl font-black text-gray-900">
-              ${orders.reduce((a, o) => a + Number(o.total_ars), 0).toLocaleString('es-AR')}
+              ${orders.filter((o) => !o.is_test).reduce((a, o) => a + Number(o.total_ars), 0).toLocaleString('es-AR')}
             </p>
           </div>
           <div className="bg-white rounded-xl border border-amber-100 p-4">
@@ -161,7 +162,14 @@ export default function AdminPanel() {
               {orders.map((o) => (
                 <div key={o.code} className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center text-xs">
                   <div>
-                    <p className="font-black text-gray-900">{o.code}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-black text-gray-900">{o.code}</p>
+                      {o.is_test && (
+                        <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded">
+                          PRUEBA
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-500">{new Date(o.created_at).toLocaleString('es-AR')}</p>
                   </div>
                   <div>
