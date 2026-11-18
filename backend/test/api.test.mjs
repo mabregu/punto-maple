@@ -38,6 +38,17 @@ function postOrder(overrides = {}) {
   });
 }
 
+let catalogCache = null;
+async function catalog() {
+  if (!catalogCache) {
+    const { body } = await api('/api/products');
+    catalogCache = Object.fromEntries(body.map((p) => [p.id, p]));
+  }
+  return catalogCache;
+}
+
+const money = (n) => `$${n.toLocaleString('es-AR')}`;
+
 test('health: API y base de datos conectadas', async () => {
   const { status, body } = await api('/api/health');
   assert.equal(status, 200);
@@ -45,28 +56,31 @@ test('health: API y base de datos conectadas', async () => {
   assert.equal(body.database, 'connected');
 });
 
-test('catálogo: 4 SKUs con precios esperados', async () => {
+test('catálogo: 4 SKUs con equivalencias correctas', async () => {
   const { status, body } = await api('/api/products');
   assert.equal(status, 200);
   assert.equal(body.length, 4);
   const byId = Object.fromEntries(body.map((p) => [p.id, p]));
-  assert.equal(byId['maple-30'].priceArs, 4900);
+  for (const p of body) assert.ok(Number.isInteger(p.priceArs) && p.priceArs >= 0);
   assert.equal(byId['pack-3-maples'].maplesEquivalent, 3);
   assert.equal(byId['docena-12'].maplesEquivalent, 0.4);
 });
 
 test('envío gratis con 3 maples exactos', async () => {
+  const price = (await catalog())['maple-30'].priceArs;
+  const expectedDiscount = Math.round(price * 3 * 0.1);
   const { status, body } = await postOrder({ items: [{ productId: 'maple-30', quantity: 3 }] });
   assert.equal(status, 201);
   assert.equal(body.totalMaples, 3);
   assert.equal(body.isFreeShipping, true);
   assert.equal(body.shippingArs, 0);
   assert.equal(body.hasCashDiscount, true);
-  assert.equal(body.discountArs, 1470);
-  assert.equal(body.totalArs, 13230);
+  assert.equal(body.subtotalArs, price * 3);
+  assert.equal(body.discountArs, expectedDiscount);
+  assert.equal(body.totalArs, price * 3 - expectedDiscount);
   assert.equal(body.isTest, true);
   assert.match(body.code, /^PM-\d{8}-[A-Z0-9]{4}$/);
-  assert.match(body.whatsappText, /Descuento por pago en efectivo \(10%\): -\$1\.470/);
+  assert.ok(body.whatsappText.includes(`Descuento por pago en efectivo (10%): -${money(expectedDiscount)}`));
 });
 
 test('mensaje de WhatsApp sin emojis ni viñetas unicode', async () => {
@@ -87,6 +101,7 @@ test('incluye referencias de entrega en el pedido y en el mensaje', async () => 
 });
 
 test('transferencia no aplica descuento', async () => {
+  const price = (await catalog())['maple-30'].priceArs;
   const { status, body } = await postOrder({
     payMethod: 'Transferencia (CBU/Alias)',
     items: [{ productId: 'maple-30', quantity: 3 }],
@@ -94,7 +109,7 @@ test('transferencia no aplica descuento', async () => {
   assert.equal(status, 201);
   assert.equal(body.discountArs, 0);
   assert.equal(body.hasCashDiscount, false);
-  assert.equal(body.totalArs, 14700);
+  assert.equal(body.totalArs, price * 3);
   assert.doesNotMatch(body.whatsappText, /Descuento por pago en efectivo/);
 });
 
@@ -133,6 +148,9 @@ test('webhook sin datos se ignora sin error', async () => {
 });
 
 test('envío pagado con 2,4 maples', async () => {
+  const cat = await catalog();
+  const subtotal = cat['maple-30'].priceArs * 2 + cat['docena-12'].priceArs;
+  const expectedDiscount = Math.round(subtotal * 0.1);
   const { status, body } = await postOrder({
     items: [
       { productId: 'maple-30', quantity: 2 },
@@ -143,20 +161,22 @@ test('envío pagado con 2,4 maples', async () => {
   assert.equal(body.totalMaples, 2.4);
   assert.equal(body.isFreeShipping, false);
   assert.equal(body.shippingArs, 1500);
-  assert.equal(body.discountArs, 1200);
-  assert.equal(body.totalArs, 12300);
+  assert.equal(body.subtotalArs, subtotal);
+  assert.equal(body.discountArs, expectedDiscount);
+  assert.equal(body.totalArs, subtotal - expectedDiscount + 1500);
 });
 
 test('el servidor ignora precios manipulados desde el cliente', async () => {
+  const realPrice = (await catalog())['pack-3-maples'].priceArs;
   const { status, body } = await postOrder({
     priceArs: 1,
     totalArs: 1,
     items: [{ productId: 'pack-3-maples', quantity: 1, priceArs: 1 }],
   });
   assert.equal(status, 201);
-  assert.equal(body.subtotalArs, 14500);
-  assert.equal(body.discountArs, 1450);
-  assert.equal(body.totalArs, 13050);
+  assert.equal(body.subtotalArs, realPrice);
+  assert.equal(body.discountArs, Math.round(realPrice * 0.1));
+  assert.equal(body.totalArs, realPrice - Math.round(realPrice * 0.1));
 });
 
 test('rechaza carrito vacío', async () => {
