@@ -8,6 +8,8 @@ export interface Product {
   icon: string;
   badge: string | null;
   sortOrder: number;
+  active?: boolean;
+  updatedAt?: string;
 }
 
 export interface CheckoutForm {

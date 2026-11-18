@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchAdmin, patchAdmin } from '@/lib/api';
+import type { Product } from '@/lib/types';
 
 interface Order {
   code: string;
@@ -33,11 +34,16 @@ interface PendingReview {
 
 const STATUSES = ['confirmado', 'pagado', 'preparando', 'en camino', 'entregado', 'cancelado'];
 
+type ProductDraft = { priceArs: string; maplesEquivalent: string; active: boolean };
+
 export default function AdminPanel() {
   const [token, setToken] = useState('');
   const [savedToken, setSavedToken] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviews, setReviews] = useState<PendingReview[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [draft, setDraft] = useState<Record<string, ProductDraft>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,12 +52,26 @@ export default function AdminPanel() {
       setLoading(true);
       setError(null);
       try {
-        const [o, r] = await Promise.all([
+        const [o, r, p] = await Promise.all([
           fetchAdmin<Order[]>('/api/orders', activeToken),
           fetchAdmin<PendingReview[]>('/api/reviews/pending', activeToken),
+          fetchAdmin<Product[]>('/api/products/admin', activeToken),
         ]);
         setOrders(o);
         setReviews(r);
+        setProducts(p);
+        setDraft(
+          Object.fromEntries(
+            p.map((product) => [
+              product.id,
+              {
+                priceArs: String(product.priceArs),
+                maplesEquivalent: String(product.maplesEquivalent),
+                active: product.active !== false,
+              },
+            ]),
+          ),
+        );
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Error al cargar');
       } finally {
@@ -84,6 +104,25 @@ export default function AdminPanel() {
   const moderate = async (id: string, status: string) => {
     await patchAdmin(`/api/reviews/${id}/${status}`, savedToken, {});
     load(savedToken);
+  };
+
+  const saveProduct = async (id: string) => {
+    const values = draft[id];
+    if (!values) return;
+    setSavingId(id);
+    setError(null);
+    try {
+      await patchAdmin(`/api/products/${id}`, savedToken, {
+        priceArs: Number(values.priceArs),
+        maplesEquivalent: Number(values.maplesEquivalent),
+        active: values.active,
+      });
+      await load(savedToken);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar el producto');
+    } finally {
+      setSavingId(null);
+    }
   };
 
   if (!savedToken) {
@@ -155,6 +194,80 @@ export default function AdminPanel() {
             <p className="text-xs text-gray-500">Reseñas pendientes</p>
             <p className="text-2xl font-black text-gray-900">{reviews.length}</p>
           </div>
+        </div>
+
+        <h2 className="text-lg font-bold text-gray-900 mb-3">Productos y precios</h2>
+        <p className="text-xs text-gray-500 mb-3">
+          Los cambios se reflejan al instante en la tienda. Los pedidos anteriores conservan el precio con el que se compraron.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          {products.map((product) => (
+            <div key={product.id} className="bg-white rounded-2xl border border-amber-100 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">{product.icon}</span>
+                <div>
+                  <p className="font-bold text-sm text-gray-900">{product.name}</p>
+                  <p className="text-[11px] text-gray-500">{product.unitText}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <label className="block">
+                  <span className="text-gray-500">Precio ($)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={draft[product.id]?.priceArs ?? product.priceArs}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        [product.id]: { ...prev[product.id], priceArs: e.target.value },
+                      }))
+                    }
+                    className="w-full mt-1 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-gray-500">Maples eq.</span>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={draft[product.id]?.maplesEquivalent ?? product.maplesEquivalent}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        [product.id]: { ...prev[product.id], maplesEquivalent: e.target.value },
+                      }))
+                    }
+                    className="w-full mt-1 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </label>
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <label className="flex items-center gap-2 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={draft[product.id]?.active ?? product.active !== false}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        [product.id]: { ...prev[product.id], active: e.target.checked },
+                      }))
+                    }
+                    className="text-amber-500 focus:ring-amber-400"
+                  />
+                  Visible en la tienda
+                </label>
+                <button
+                  onClick={() => saveProduct(product.id)}
+                  disabled={savingId === product.id}
+                  className="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white text-xs font-bold px-4 py-2 rounded-lg"
+                >
+                  {savingId === product.id ? 'Guardando…' : 'Guardar'}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
         <h2 className="text-lg font-bold text-gray-900 mb-3">Pedidos recientes</h2>

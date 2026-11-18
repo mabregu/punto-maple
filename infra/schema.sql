@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS products (
   badge              TEXT,
   sort_order         INTEGER NOT NULL DEFAULT 0,
   active             BOOLEAN NOT NULL DEFAULT true,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS orders (

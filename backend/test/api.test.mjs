@@ -182,6 +182,33 @@ test('acepta el token de administrador', { skip: !ADMIN_TOKEN }, async () => {
   assert.equal(status, 200);
 });
 
+test('protege la administración de productos sin token', async () => {
+  const { status } = await api('/api/products/admin');
+  assert.equal(status, 401);
+});
+
+test('actualiza un precio desde el panel y lo restaura', { skip: !ADMIN_TOKEN }, async () => {
+  const initial = await api('/api/products');
+  const original = initial.body.find((p) => p.id === 'maple-30').priceArs;
+  try {
+    const { status, body } = await api('/api/products/maple-30', {
+      method: 'PATCH',
+      headers: { 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify({ priceArs: original + 1 }),
+    });
+    assert.equal(status, 200);
+    assert.equal(body.priceArs, original + 1);
+    const after = await api('/api/products');
+    assert.equal(after.body.find((p) => p.id === 'maple-30').priceArs, original + 1);
+  } finally {
+    await api('/api/products/maple-30', {
+      method: 'PATCH',
+      headers: { 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify({ priceArs: original }),
+    });
+  }
+});
+
 test('limpia los pedidos de prueba', { skip: !ADMIN_TOKEN }, async () => {
   const { status, body } = await api('/api/orders/test', {
     method: 'DELETE',
