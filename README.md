@@ -27,10 +27,22 @@ punto-maple/
 - `GET /api/orders/:code` — detalle de un pedido
 - `GET /api/orders` — listado (requiere `x-admin-token`)
 - `PATCH /api/orders/:code/status` — cambiar estado (requiere `x-admin-token`)
+- `DELETE /api/orders/test` — borra solo pedidos con `is_test = true` (requiere `x-admin-token`)
 - `POST /api/reviews` — crear reseña (queda `pending`)
 - `GET /api/reviews` — reseñas aprobadas
 - `GET /api/reviews/pending` — moderación (requiere `x-admin-token`)
 - `PATCH /api/reviews/:id/:status` — aprobar/rechazar (requiere `x-admin-token`)
+
+## Pruebas
+
+```bash
+cd backend
+npm test
+# con limpieza y entorno explícito:
+TEST_API_URL=https://punto-maple-backend.onrender.com ADMIN_TOKEN=<token> npm test
+```
+
+Circuitos manual y automático: ver `CHECKOUT_QA.md`.
 
 ## Regla de negocio
 

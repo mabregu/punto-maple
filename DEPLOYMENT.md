@@ -58,6 +58,13 @@ curl -X POST https://punto-maple-backend.onrender.com/api/orders \
   -d '{"customerName":"Prueba","phone":"2215550000","zone":"Ensenada","street":"Calle 1","items":[{"productId":"pack-3-maples","quantity":1}]}'
 ```
 
+## Pruebas
+
+- Batería automática: `cd backend && ADMIN_TOKEN=<token> npm test` (12 tests, `node:test`).
+- Circuito manual: ver `CHECKOUT_QA.md`.
+- Los pedidos de la batería se crean con `is_test = true` y se limpian con:
+  `curl -X DELETE https://punto-maple-backend.onrender.com/api/orders/test -H "x-admin-token: <token>"`
+
 ## Próximos pasos (roadmap)
 
 - [ ] Integrar **Mercado Pago** (Checkout Pro → Bricks → Suscripciones).
