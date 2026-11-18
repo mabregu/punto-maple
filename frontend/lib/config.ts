@@ -10,3 +10,7 @@ export const FREE_SHIPPING_THRESHOLD = Number(
 export const SHIPPING_COST_ARS = Number(
   process.env.NEXT_PUBLIC_SHIPPING_COST_ARS || 1500,
 );
+
+export const CASH_DISCOUNT_RATE = Number(
+  process.env.NEXT_PUBLIC_CASH_DISCOUNT_RATE || 0.1,
+);

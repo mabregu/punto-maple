@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createOrder, fetchProducts, fetchReviews } from '@/lib/api';
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_COST_ARS, WHATSAPP_PHONE } from '@/lib/config';
+import { CASH_DISCOUNT_RATE, FREE_SHIPPING_THRESHOLD, SHIPPING_COST_ARS, WHATSAPP_PHONE } from '@/lib/config';
 import type { CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
 import CartDrawer from './CartDrawer';
 import Footer from './Footer';
@@ -50,17 +50,20 @@ export default function PuntoMapleApp() {
       totalMaples += product.maplesEquivalent * qty;
       totalItems += qty;
     }
+    const isCash = /efectivo/i.test(form.payMethod);
+    const discount = isCash ? Math.round(subtotal * CASH_DISCOUNT_RATE) : 0;
     const isFreeShipping = totalMaples >= FREE_SHIPPING_THRESHOLD;
     const shipping = totalItems === 0 ? 0 : isFreeShipping ? 0 : SHIPPING_COST_ARS;
     return {
       subtotal,
+      discount,
       shipping,
-      total: subtotal + shipping,
+      total: subtotal - discount + shipping,
       totalMaples,
       totalItems,
       isFreeShipping,
     };
-  }, [cart, products]);
+  }, [cart, products, form.payMethod]);
 
   const addToCart = (id: string) => {
     setResult(null);

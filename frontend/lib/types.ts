@@ -36,6 +36,7 @@ export interface OrderResult {
 
 export interface Totals {
   subtotal: number;
+  discount: number;
   shipping: number;
   total: number;
   totalMaples: number;

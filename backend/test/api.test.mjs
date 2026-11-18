@@ -61,10 +61,31 @@ test('envío gratis con 3 maples exactos', async () => {
   assert.equal(body.totalMaples, 3);
   assert.equal(body.isFreeShipping, true);
   assert.equal(body.shippingArs, 0);
-  assert.equal(body.totalArs, 14700);
+  assert.equal(body.hasCashDiscount, true);
+  assert.equal(body.discountArs, 1470);
+  assert.equal(body.totalArs, 13230);
   assert.equal(body.isTest, true);
   assert.match(body.code, /^PM-\d{8}-[A-Z0-9]{4}$/);
-  assert.match(body.whatsappText, /¡GRATIS!/);
+  assert.match(body.whatsappText, /Descuento por pago en efectivo \(10%\): -\$1\.470/);
+});
+
+test('mensaje de WhatsApp sin emojis ni viñetas unicode', async () => {
+  const { body } = await postOrder();
+  assert.doesNotMatch(body.whatsappText, /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
+  assert.doesNotMatch(body.whatsappText, /•/);
+  assert.match(body.whatsappText, /^- 3x Maple Clásico/m);
+});
+
+test('transferencia no aplica descuento', async () => {
+  const { status, body } = await postOrder({
+    payMethod: 'Transferencia (CBU/Alias)',
+    items: [{ productId: 'maple-30', quantity: 3 }],
+  });
+  assert.equal(status, 201);
+  assert.equal(body.discountArs, 0);
+  assert.equal(body.hasCashDiscount, false);
+  assert.equal(body.totalArs, 14700);
+  assert.doesNotMatch(body.whatsappText, /Descuento por pago en efectivo/);
 });
 
 test('envío pagado con 2,4 maples', async () => {
@@ -78,7 +99,8 @@ test('envío pagado con 2,4 maples', async () => {
   assert.equal(body.totalMaples, 2.4);
   assert.equal(body.isFreeShipping, false);
   assert.equal(body.shippingArs, 1500);
-  assert.equal(body.totalArs, 13500);
+  assert.equal(body.discountArs, 1350);
+  assert.equal(body.totalArs, 12150);
 });
 
 test('el servidor ignora precios manipulados desde el cliente', async () => {
@@ -89,7 +111,8 @@ test('el servidor ignora precios manipulados desde el cliente', async () => {
   });
   assert.equal(status, 201);
   assert.equal(body.subtotalArs, 14500);
-  assert.equal(body.totalArs, 14500);
+  assert.equal(body.discountArs, 1450);
+  assert.equal(body.totalArs, 13050);
 });
 
 test('rechaza carrito vacío', async () => {

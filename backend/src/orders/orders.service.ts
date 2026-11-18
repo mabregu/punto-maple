@@ -67,10 +67,15 @@ export class OrdersService {
       throw new BadRequestException('Ningún producto del carrito está disponible');
     }
 
+    const payMethod = dto.payMethod?.trim() || 'Efectivo al recibir';
+    const isCash = /efectivo/i.test(payMethod);
+    const discountRate = Number(process.env.CASH_DISCOUNT_RATE || 0.1);
+    const discount = isCash ? Math.round(subtotal * discountRate) : 0;
+
     const threshold = Number(process.env.FREE_SHIPPING_MAPLES_THRESHOLD || 3);
     const shippingCost = Number(process.env.SHIPPING_COST_ARS || 1500);
     const shipping = totalMaples >= threshold ? 0 : shippingCost;
-    const total = subtotal + shipping;
+    const total = subtotal - discount + shipping;
     const code = orderCode();
 
     const client = await pool.connect();
@@ -79,8 +84,8 @@ export class OrdersService {
       await client.query(
         `INSERT INTO orders
           (code, customer_name, phone, zone, street, between_street, pay_method,
-           subtotal_ars, shipping_ars, total_ars, total_maples, status, is_test)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'confirmado',$12)`,
+           subtotal_ars, discount_ars, shipping_ars, total_ars, total_maples, status, is_test)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'confirmado',$13)`,
         [
           code,
           dto.customerName.trim(),
@@ -88,8 +93,9 @@ export class OrdersService {
           dto.zone.trim(),
           dto.street.trim(),
           dto.between?.trim() || null,
-          dto.payMethod?.trim() || 'Efectivo al recibir',
+          payMethod,
           subtotal,
+          discount,
           shipping,
           total,
           Number(totalMaples.toFixed(2)),
@@ -117,9 +123,11 @@ export class OrdersService {
       customerName: dto.customerName.trim(),
       zone: dto.zone.trim(),
       street: dto.street.trim(),
-      payMethod: dto.payMethod?.trim() || 'Efectivo al recibir',
+      payMethod,
       items: lines,
       subtotalArs: subtotal,
+      discountArs: discount,
+      hasCashDiscount: discount > 0,
       shippingArs: shipping,
       totalArs: total,
       totalMaples: Number(totalMaples.toFixed(2)),
@@ -127,7 +135,7 @@ export class OrdersService {
       whatsappText: this.buildWhatsappText({
         code, customerName: dto.customerName.trim(), phone: dto.phone,
         zone: dto.zone.trim(), street: dto.street.trim(), between: dto.between,
-        payMethod: dto.payMethod, lines, subtotal, shipping, total,
+        payMethod, lines, subtotal, discount, shipping, total,
       }),
     };
   }
@@ -147,6 +155,7 @@ export class OrdersService {
       street: order.street,
       status: order.status,
       subtotalArs: Number(order.subtotal_ars),
+      discountArs: Number(order.discount_ars),
       shippingArs: Number(order.shipping_ars),
       totalArs: Number(order.total_ars),
       isTest: order.is_test,
@@ -158,7 +167,7 @@ export class OrdersService {
   async findAll() {
     const { rows } = await pool.query(`
       SELECT code, customer_name, phone, zone, street, between_street, pay_method,
-             total_ars, total_maples, status, is_test, created_at
+             subtotal_ars, discount_ars, total_ars, total_maples, status, is_test, created_at
       FROM orders ORDER BY created_at DESC LIMIT 100
     `);
     return rows;
@@ -185,22 +194,30 @@ export class OrdersService {
     code: string; customerName: string; phone?: string; zone: string; street: string;
     between?: string; payMethod?: string;
     lines: Array<{ name: string; quantity: number; lineTotal: number }>;
-    subtotal: number; shipping: number; total: number;
+    subtotal: number; discount: number; shipping: number; total: number;
   }): string {
     const money = (n: number) => `$${n.toLocaleString('es-AR')}`;
-    let text = `👋 *¡Hola Punto Maple! Quiero encargar huevos frescos:*\n\n`;
-    text += `🆔 *Pedido:* ${o.code}\n`;
-    text += `👤 *Cliente:* ${o.customerName}\n`;
-    text += `📍 *Zona:* ${o.zone}\n`;
-    text += `🏠 *Dirección:* ${o.street}${o.between ? ` (Entre: ${o.between})` : ''}\n`;
-    if (o.phone) text += `📞 *Teléfono:* ${o.phone}\n`;
-    text += `💵 *Forma de Pago:* ${o.payMethod || 'Efectivo al recibir'}\n\n`;
-    text += `📦 *DETALLE DEL PEDIDO:*\n`;
+    const rate = Math.round(Number(process.env.CASH_DISCOUNT_RATE || 0.1) * 100);
+
+    // Texto plano: sin emojis ni viñetas unicode para que se lea igual en cualquier dispositivo.
+    let text = `*¡Hola Punto Maple! Quiero encargar huevos frescos:*\n\n`;
+    text += `*Pedido:* ${o.code}\n`;
+    text += `*Cliente:* ${o.customerName}\n`;
+    text += `*Zona:* ${o.zone}\n`;
+    text += `*Dirección:* ${o.street}${o.between ? ` (Entre: ${o.between})` : ''}\n`;
+    if (o.phone) text += `*Teléfono:* ${o.phone}\n`;
+    text += `*Forma de Pago:* ${o.payMethod || 'Efectivo al recibir'}\n\n`;
+
+    text += `*DETALLE DEL PEDIDO:*\n`;
     for (const line of o.lines) {
-      text += `• ${line.quantity}x ${line.name} (${money(line.lineTotal)})\n`;
+      text += `- ${line.quantity}x ${line.name} (${money(line.lineTotal)})\n`;
     }
+
     text += `\nSubtotal: ${money(o.subtotal)}\n`;
-    text += `Envío: ${o.shipping === 0 ? '¡GRATIS! (Promo 3+ maples)' : money(o.shipping)}\n`;
+    if (o.discount > 0) {
+      text += `Descuento por pago en efectivo (${rate}%): -${money(o.discount)}\n`;
+    }
+    text += `Envío: ${o.shipping === 0 ? 'GRATIS (Promo 3+ maples)' : money(o.shipping)}\n`;
     text += `*TOTAL ESTIMADO: ${money(o.total)}*\n\n`;
     text += `_¿Qué día y franja horaria tienen reparto para mi zona?_`;
     return text;

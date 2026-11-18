@@ -43,16 +43,16 @@ La variable `ADMIN_TOKEN` habilita los dos últimos tests (acceso al panel y lim
 |---|---|---|
 | 1 | Cargar la home | Aparecen los 4 productos y la barra "Agregá X maples más" |
 | 2 | Agregar 1 maple de 30 | Barra al 33%; carrito dice "$4.900 + $1.500 de envío" |
-| 3 | Sumar 2 maples más (total 3) | Barra verde: "¡Tenés ENVÍO GRATIS asegurado!"; envío $0; total $14.700 |
+| 3 | Sumar 2 maples más (total 3) | Barra verde: "¡Tenés ENVÍO GRATIS asegurado!"; envío $0; con Efectivo: descuento -$1.470 y total **$13.230**; con Transferencia: total $14.700 |
 | 4 | Abrir el carrito | Precios, cantidades y `+ / -` correctos; al bajar a 2 el envío vuelve a $1.500 |
 | 5 | Completar nombre, teléfono, zona y calle | Si falta alguno, el botón muestra el aviso (no se crea el pedido) |
-| 6 | Elegir "Transferencia" | El mensaje de WhatsApp debe decir *Forma de Pago: Transferencia (CBU/Alias)* |
+| 6 | Elegir "Transferencia" | El mensaje dice *Forma de Pago: Transferencia (CBU/Alias)* y **no** incluye línea de descuento; al volver a Efectivo aparece "Descuento por pago en efectivo (10%)" |
 | 7 | Tocar "Confirmar Pedido por WhatsApp" | Se abre `wa.me/5491134591224` con el resumen **ya redactado** |
-| 8 | Revisar el mensaje | Código `PM-YYYYMMDD-XXXX`, acentos correctos (Martín, Nº), negritas, "Envío: ¡GRATIS!" y saludo final |
+| 8 | Revisar el mensaje | Código `PM-YYYYMMDD-XXXX`, acentos correctos (Martín, Nº), **sin emojis ni símbolos raros**, negritas con `*`, viñetas con `-`, línea de descuento y saludo final |
 | 9 | **No hace falta enviarlo** para validar; si querés probar extremo a extremo, enviarlo y ver que llegue | El chat se abre con el número del negocio |
 | 10 | Abrir `/admin`, ingresar el token | El pedido aparece con badge **PRUEBA**, zone, dirección y total correctos |
 | 11 | Cambiar el estado a "preparando" y "entregado" | El badge cambia y la métrica "Pedidos activos" baja |
-| 12 | Probar un pedido de 2,4 maples (2×30 + 1×12) | Envío $1.500 y total $13.500 |
+| 12 | Probar un pedido de 2,4 maples (2×30 + 1×12) | Envío $1.500, descuento -$1.350 y total **$12.150** |
 
 ### Casos límite (opcional pero recomendado)
 - [ ] Borrar todos los productos del carrito → el botón se deshabilita.

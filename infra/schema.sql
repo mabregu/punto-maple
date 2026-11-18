@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS orders (
   between_street TEXT,
   pay_method     TEXT NOT NULL DEFAULT 'Efectivo al recibir',
   subtotal_ars   INTEGER NOT NULL,
+  discount_ars   INTEGER NOT NULL DEFAULT 0,
   shipping_ars   INTEGER NOT NULL DEFAULT 0,
   total_ars      INTEGER NOT NULL,
   total_maples   NUMERIC(6,2) NOT NULL DEFAULT 0,

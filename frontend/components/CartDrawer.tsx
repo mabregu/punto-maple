@@ -1,5 +1,6 @@
 'use client';
 
+import { CASH_DISCOUNT_RATE } from '@/lib/config';
 import type { CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
 
 interface Props {
@@ -199,7 +200,11 @@ export default function CartDrawer({
                       onChange={() => onFormChange('payMethod', method)}
                       className="text-amber-500 focus:ring-amber-400"
                     />
-                    <span>{method === 'Efectivo al recibir' ? '💵 Efectivo' : '📱 Transferencia'}</span>
+                    <span>
+                      {method === 'Efectivo al recibir'
+                        ? `💵 Efectivo (-${Math.round(CASH_DISCOUNT_RATE * 100)}%)`
+                        : '📱 Transferencia'}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -210,6 +215,12 @@ export default function CartDrawer({
                 <span>Subtotal productos:</span>
                 <span className="font-semibold">${totals.subtotal.toLocaleString('es-AR')}</span>
               </div>
+              {totals.discount > 0 && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>Descuento por pago en efectivo:</span>
+                  <span className="font-bold">-${totals.discount.toLocaleString('es-AR')}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-600">
                 <span>Costo de envío:</span>
                 <span className={totals.isFreeShipping ? 'font-bold text-emerald-600' : 'font-semibold text-gray-800'}>

@@ -49,6 +49,8 @@ Circuitos manual y automático: ver `CHECKOUT_QA.md`.
 Envío gratis cuando el carrito alcanza `FREE_SHIPPING_MAPLES_THRESHOLD` maples (por defecto 3).
 El equivalente en maples de cada presentación se configura en la tabla `products` (`maples_equivalent`).
 
+**Descuento por pago en efectivo:** 10% sobre el subtotal de productos cuando el medio de pago es `Efectivo al recibir` (configurable con `CASH_DISCOUNT_RATE`). El envío no se descuenta. Transferencia y futuros pagos online no aplican descuento.
+
 ## Desarrollo local
 
 ```bash
@@ -74,6 +76,7 @@ npm run dev
 - `ADMIN_TOKEN` — token para el panel interno
 - `FREE_SHIPPING_MAPLES_THRESHOLD` — default `3`
 - `SHIPPING_COST_ARS` — default `1500`
+- `CASH_DISCOUNT_RATE` — default `0.1` (10% en efectivo)
 - `FRONTEND_URL` — URL de Vercel (para CORS, opcional)
 
 ### Frontend (Vercel)
@@ -81,3 +84,4 @@ npm run dev
 - `NEXT_PUBLIC_WHATSAPP_PHONE` — número en formato `549221XXXXXXX` (**reemplazar**)
 - `NEXT_PUBLIC_FREE_SHIPPING_MAPLES_THRESHOLD` — default `3`
 - `NEXT_PUBLIC_SHIPPING_COST_ARS` — default `1500`
+- `NEXT_PUBLIC_CASH_DISCOUNT_RATE` — default `0.1`

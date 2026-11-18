@@ -33,12 +33,14 @@
 - `NEXT_PUBLIC_WHATSAPP_PHONE` = `5491134591224`
 - `NEXT_PUBLIC_FREE_SHIPPING_MAPLES_THRESHOLD` = `3`
 - `NEXT_PUBLIC_SHIPPING_COST_ARS` = `1500`
+- `NEXT_PUBLIC_CASH_DISCOUNT_RATE` = `0.1`
 
 **Render** (`punto-maple-backend`):
 - `DATABASE_URL` (connection string de Neon, pooler)
 - `ADMIN_TOKEN`
 - `FREE_SHIPPING_MAPLES_THRESHOLD` = `3`
 - `SHIPPING_COST_ARS` = `1500`
+- `CASH_DISCOUNT_RATE` = `0.1`
 
 ## Flujo funcional verificado
 

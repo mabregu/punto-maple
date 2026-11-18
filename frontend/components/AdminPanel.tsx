@@ -11,6 +11,8 @@ interface Order {
   street: string;
   between_street: string | null;
   pay_method: string;
+  subtotal_ars: number;
+  discount_ars: number;
   total_ars: number;
   total_maples: number;
   status: string;
@@ -180,6 +182,9 @@ export default function AdminPanel() {
                   <div>
                     <p className="font-bold text-gray-900">${Number(o.total_ars).toLocaleString('es-AR')}</p>
                     <p className="text-gray-500">{o.total_maples} maples · {o.pay_method}</p>
+                    {Number(o.discount_ars) > 0 && (
+                      <p className="text-emerald-700">- ${Number(o.discount_ars).toLocaleString('es-AR')} dto. efectivo</p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-1 justify-start sm:justify-end">
                     {STATUSES.map((s) => (
