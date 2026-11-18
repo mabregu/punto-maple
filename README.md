@@ -23,6 +23,8 @@ punto-maple/
 
 - `GET /api/health` — estado de la API y de la DB
 - `GET /api/products` — catálogo activo
+- `GET /api/products/admin` — todos los productos (requiere `x-admin-token`)
+- `PATCH /api/products/:id` — edita precio, equivalencia en maples y visibilidad (requiere `x-admin-token`)
 - `POST /api/orders` — crea pedido (calcula totals en servidor) y devuelve `whatsappText`
 - `GET /api/orders/:code` — detalle de un pedido
 - `GET /api/orders` — listado (requiere `x-admin-token`)

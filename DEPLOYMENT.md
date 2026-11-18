@@ -60,6 +60,10 @@ curl -X POST https://punto-maple-backend.onrender.com/api/orders \
   -d '{"customerName":"Prueba","phone":"2215550000","zone":"Ensenada","street":"Calle 1","items":[{"productId":"pack-3-maples","quantity":1}]}'
 ```
 
+## Edición de precios
+
+Desde `/admin` → **Productos y precios** se puede cambiar el precio, la equivalencia en maples (umbral de envío gratis) y la visibilidad de cada SKU sin tocar código ni redesplegar. Los pedidos ya realizados conservan el precio histórico en `order_items`.
+
 ## Mercado Pago
 
 - **App:** `Punto Maple`, ID `6581174382020281` (Checkout Pro, `online_payments`, `self_developed`, site `MLA`).
