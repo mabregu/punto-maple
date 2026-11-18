@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createOrder, fetchProducts, fetchReviews } from '@/lib/api';
+import { createOrder, createPaymentPreference, fetchProducts, fetchReviews } from '@/lib/api';
 import { CASH_DISCOUNT_RATE, FREE_SHIPPING_THRESHOLD, SHIPPING_COST_ARS, WHATSAPP_PHONE } from '@/lib/config';
 import type { CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
 import CartDrawer from './CartDrawer';
@@ -95,6 +95,14 @@ export default function PuntoMapleApp() {
     try {
       const items = Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity }));
       const order = await createOrder(form, items);
+
+      if (form.payMethod === 'Mercado Pago') {
+        const preference = await createPaymentPreference(order.code);
+        setCart({});
+        window.location.href = preference.initPoint;
+        return;
+      }
+
       setResult(order);
       const url = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(order.whatsappText)}`;
       window.open(url, '_blank', 'noopener,noreferrer');

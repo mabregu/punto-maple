@@ -42,6 +42,51 @@ export async function createOrder(form: CheckoutForm, items: Array<{ productId: 
   return res.json();
 }
 
+export interface OrderStatusDto {
+  code: string;
+  status: string;
+  payMethod: string;
+  paymentStatus: string | null;
+  paymentId: string | null;
+  totalArs: number;
+  createdAt: string;
+}
+
+export async function fetchOrder(code: string): Promise<OrderStatusDto | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/orders/${encodeURIComponent(code)}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export interface PaymentPreference {
+  preferenceId: string;
+  initPoint: string;
+  orderCode: string;
+}
+
+export async function createPaymentPreference(code: string): Promise<PaymentPreference> {
+  const res = await fetch(`${API_URL}/api/payments/preference`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  if (!res.ok) {
+    let message = 'No pudimos iniciar el pago con Mercado Pago.';
+    try {
+      const err = await res.json();
+      if (err?.message) message = Array.isArray(err.message) ? err.message.join(', ') : err.message;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 export async function fetchAdmin<T>(path: string, token: string): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     headers: { 'x-admin-token': token },

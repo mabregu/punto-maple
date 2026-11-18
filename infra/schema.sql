@@ -32,6 +32,10 @@ CREATE TABLE IF NOT EXISTS orders (
   total_ars      INTEGER NOT NULL,
   total_maples   NUMERIC(6,2) NOT NULL DEFAULT 0,
   status         TEXT NOT NULL DEFAULT 'confirmado',
+  preference_id  TEXT,
+  payment_id     TEXT,
+  payment_status TEXT,
+  paid_at        TIMESTAMPTZ,
   is_test        BOOLEAN NOT NULL DEFAULT false,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -58,6 +62,13 @@ CREATE TABLE IF NOT EXISTS reviews (
   status      TEXT NOT NULL DEFAULT 'pending',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS mp_webhook_events (
+  payment_id   TEXT NOT NULL,
+  status       TEXT NOT NULL,
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (payment_id, status)
 );
 
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC);

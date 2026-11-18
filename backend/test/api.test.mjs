@@ -88,6 +88,30 @@ test('transferencia no aplica descuento', async () => {
   assert.doesNotMatch(body.whatsappText, /Descuento por pago en efectivo/);
 });
 
+test('crea preferencia de Mercado Pago en sandbox', async () => {
+  const { status: orderStatus, body: order } = await postOrder({ payMethod: 'Mercado Pago' });
+  assert.equal(orderStatus, 201);
+  assert.equal(order.hasCashDiscount, false);
+
+  const { status, body } = await api('/api/payments/preference', {
+    method: 'POST',
+    body: JSON.stringify({ code: order.code }),
+  });
+  assert.equal(status, 201);
+  assert.ok(body.preferenceId);
+  assert.match(body.initPoint, /mercadopago\.com/);
+  assert.equal(body.orderCode, order.code);
+});
+
+test('webhook sin datos se ignora sin error', async () => {
+  const { status, body } = await api('/api/payments/webhook', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  assert.equal(status, 201);
+  assert.equal(body.ignored, true);
+});
+
 test('envío pagado con 2,4 maples', async () => {
   const { status, body } = await postOrder({
     items: [

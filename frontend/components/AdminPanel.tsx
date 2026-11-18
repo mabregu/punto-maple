@@ -16,6 +16,8 @@ interface Order {
   total_ars: number;
   total_maples: number;
   status: string;
+  payment_status: string | null;
+  payment_id: string | null;
   is_test: boolean;
   created_at: string;
 }
@@ -29,7 +31,7 @@ interface PendingReview {
   created_at: string;
 }
 
-const STATUSES = ['confirmado', 'preparando', 'en camino', 'entregado', 'cancelado'];
+const STATUSES = ['confirmado', 'pagado', 'preparando', 'en camino', 'entregado', 'cancelado'];
 
 export default function AdminPanel() {
   const [token, setToken] = useState('');
@@ -166,6 +168,11 @@ export default function AdminPanel() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-black text-gray-900">{o.code}</p>
+                      {o.payment_status === 'approved' && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded">
+                          PAGADO MP
+                        </span>
+                      )}
                       {o.is_test && (
                         <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded">
                           PRUEBA

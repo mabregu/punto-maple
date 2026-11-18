@@ -187,7 +187,7 @@ export default function CartDrawer({
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1">Medio de Pago:</label>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                {['Efectivo al recibir', 'Transferencia (CBU/Alias)'].map((method) => (
+                {['Efectivo al recibir', 'Transferencia (CBU/Alias)', 'Mercado Pago'].map((method) => (
                   <label
                     key={method}
                     className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg bg-white cursor-pointer hover:border-amber-400"
@@ -203,7 +203,9 @@ export default function CartDrawer({
                     <span>
                       {method === 'Efectivo al recibir'
                         ? `💵 Efectivo (-${Math.round(CASH_DISCOUNT_RATE * 100)}%)`
-                        : '📱 Transferencia'}
+                        : method === 'Mercado Pago'
+                          ? '💳 Mercado Pago'
+                          : '📱 Transferencia'}
                     </span>
                   </label>
                 ))}

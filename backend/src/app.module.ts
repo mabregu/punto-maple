@@ -3,9 +3,10 @@ import { HealthController } from './health.controller';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
-  imports: [ProductsModule, OrdersModule, ReviewsModule],
+  imports: [ProductsModule, OrdersModule, ReviewsModule, PaymentsModule],
   controllers: [HealthController],
 })
 export class AppModule {}

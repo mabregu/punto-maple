@@ -158,6 +158,11 @@ export class OrdersService {
       discountArs: Number(order.discount_ars),
       shippingArs: Number(order.shipping_ars),
       totalArs: Number(order.total_ars),
+      payMethod: order.pay_method,
+      paymentStatus: order.payment_status,
+      paymentId: order.payment_id,
+      preferenceId: order.preference_id,
+      paidAt: order.paid_at,
       isTest: order.is_test,
       createdAt: order.created_at,
       items: items.rows,
@@ -167,7 +172,8 @@ export class OrdersService {
   async findAll() {
     const { rows } = await pool.query(`
       SELECT code, customer_name, phone, zone, street, between_street, pay_method,
-             subtotal_ars, discount_ars, total_ars, total_maples, status, is_test, created_at
+             subtotal_ars, discount_ars, total_ars, total_maples, status,
+             payment_status, payment_id, is_test, created_at
       FROM orders ORDER BY created_at DESC LIMIT 100
     `);
     return rows;
@@ -180,7 +186,7 @@ export class OrdersService {
   }
 
   async updateStatus(code: string, status: string) {
-    const allowed = ['confirmado', 'preparando', 'en camino', 'entregado', 'cancelado'];
+    const allowed = ['confirmado', 'pagado', 'preparando', 'en camino', 'entregado', 'cancelado'];
     if (!allowed.includes(status)) throw new BadRequestException('Estado inválido');
     const { rowCount } = await pool.query(
       `UPDATE orders SET status = $1, updated_at = now() WHERE code = $2`,
