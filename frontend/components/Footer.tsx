@@ -9,6 +9,9 @@ export default function Footer() {
         </div>
         <div className="flex items-center gap-4">
           <p className="text-gray-400">Huevos frescos de producción propia y flete en auto.</p>
+          <a href="/reseniar" className="text-gray-400 hover:text-amber-400 underline">
+            Dejá tu opinión
+          </a>
           <a href="/admin" className="text-gray-500 hover:text-amber-400 underline">
             Panel interno
           </a>

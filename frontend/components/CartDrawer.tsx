@@ -66,9 +66,9 @@ export default function CartDrawer({
     >
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
+      <div className="fixed inset-y-0 right-0 flex w-full justify-end pl-0 sm:pl-10">
+        <div className="w-full max-w-md bg-white shadow-2xl flex flex-col overflow-y-auto overscroll-contain">
+          <div className="sticky top-0 z-10 p-4 border-b border-gray-100 flex items-center justify-between bg-amber-50/95 backdrop-blur-sm">
             <div className="flex items-center gap-2">
               <span className="text-xl">🛒</span>
               <h3 className="text-base font-bold text-gray-900">Tu Carrito de Compra</h3>
@@ -84,7 +84,7 @@ export default function CartDrawer({
             </button>
           </div>
 
-          <div className="p-4 flex-1 overflow-y-auto space-y-3" id="cart-items-container">
+          <div className="p-4 space-y-3" id="cart-items-container">
             {items.length === 0 ? (
               <div className="text-center py-12 text-gray-400">
                 <span className="text-4xl block mb-2">🥚</span>
@@ -98,35 +98,35 @@ export default function CartDrawer({
                 const product = products.find((p) => p.id === id);
                 if (!product) return null;
                 return (
-                  <div key={id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{product.icon}</span>
-                      <div>
-                        <h5 className="font-bold text-xs text-gray-800">{product.name}</h5>
+                  <div key={id} className="flex items-start justify-between gap-2 p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                      <span className="text-2xl shrink-0">{product.icon}</span>
+                      <div className="min-w-0">
+                        <h5 className="font-bold text-xs text-gray-800 leading-snug break-words">{product.name}</h5>
                         <span className="text-[11px] text-gray-500">${product.priceArs.toLocaleString('es-AR')} c/u</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-xs font-bold text-gray-900">
+                        ${(product.priceArs * qty).toLocaleString('es-AR')}
+                      </span>
                       <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
                         <button
                           onClick={() => onChangeQuantity(id, -1)}
-                          className="w-6 h-6 flex items-center justify-center font-bold text-gray-600 hover:bg-gray-200 rounded-l"
+                          className="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center font-bold text-gray-700 hover:bg-gray-200 active:bg-gray-300 rounded-l"
                           aria-label="Restar"
                         >
-                          -
+                          −
                         </button>
-                        <span className="w-6 text-center text-xs font-bold text-gray-800">{qty}</span>
+                        <span className="w-7 text-center text-xs font-bold text-gray-800">{qty}</span>
                         <button
                           onClick={() => onChangeQuantity(id, 1)}
-                          className="w-6 h-6 flex items-center justify-center font-bold text-gray-600 hover:bg-gray-200 rounded-r"
+                          className="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center font-bold text-gray-700 hover:bg-gray-200 active:bg-gray-300 rounded-r"
                           aria-label="Sumar"
                         >
                           +
                         </button>
                       </div>
-                      <span className="text-xs font-bold text-gray-900 w-16 text-right">
-                        ${(product.priceArs * qty).toLocaleString('es-AR')}
-                      </span>
                     </div>
                   </div>
                 );
@@ -134,7 +134,7 @@ export default function CartDrawer({
             )}
           </div>
 
-          <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
+          <div className="mt-auto p-4 bg-gray-50 border-t border-gray-200 space-y-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {result && (
               <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
                 <strong>✅ Pedido {result.code} registrado.</strong>
@@ -162,20 +162,20 @@ export default function CartDrawer({
                 value={form.customerName}
                 onChange={(e) => onFormChange('customerName', e.target.value)}
                 placeholder="Tu Nombre y Apellido *"
-                className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                className="w-full text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
               />
               <input
                 type="tel"
                 value={form.phone}
                 onChange={(e) => onFormChange('phone', e.target.value)}
                 placeholder="Tu Teléfono de contacto *"
-                className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                className="w-full text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
               />
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <select
                   value={form.zone}
                   onChange={(e) => onFormChange('zone', e.target.value)}
-                  className="text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white font-medium text-gray-700"
+                  className="text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white font-medium text-gray-700"
                 >
                   {ZONES.map((z) => (
                     <option key={z} value={z}>{z}</option>
@@ -186,7 +186,7 @@ export default function CartDrawer({
                   value={form.street}
                   onChange={(e) => onFormChange('street', e.target.value)}
                   placeholder="Calle y Altura *"
-                  className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                  className="w-full text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
                 />
               </div>
               <input
@@ -194,14 +194,14 @@ export default function CartDrawer({
                 value={form.between}
                 onChange={(e) => onFormChange('between', e.target.value)}
                 placeholder="Entre calles o Depto / Piso"
-                className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                className="w-full text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
               />
               <input
                 type="text"
                 value={form.deliveryNotes}
                 onChange={(e) => onFormChange('deliveryNotes', e.target.value)}
                 placeholder="Referencias: portón negro, casa de dos plantas… (opcional)"
-                className="w-full text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                className="w-full text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
               />
             </div>
 
@@ -225,7 +225,7 @@ export default function CartDrawer({
                     value={couponInput}
                     onChange={(e) => onCouponInput(e.target.value.toUpperCase())}
                     placeholder="Ej: VECINO10"
-                    className="flex-1 text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white uppercase"
+                    className="flex-1 text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white uppercase"
                   />
                   <button
                     onClick={onApplyCoupon}
@@ -241,7 +241,7 @@ export default function CartDrawer({
 
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1">Medio de Pago:</label>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {['Efectivo al recibir', 'Transferencia (CBU/Alias)', 'Mercado Pago'].map((method) => (
                   <label
                     key={method}
@@ -303,7 +303,7 @@ export default function CartDrawer({
             <button
               onClick={onSubmit}
               disabled={submitting || totals.totalItems === 0}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition active:scale-95"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white text-sm sm:text-xs font-extrabold py-3.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition active:scale-95"
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.144.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z" />

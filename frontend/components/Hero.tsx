@@ -5,7 +5,7 @@ export default function Hero() {
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         Recolección de Granja Propia en Punta Lara
       </div>
-      <h2 className="text-3xl sm:text-5xl font-black text-gray-900 tracking-tight max-w-2xl mx-auto leading-tight">
+      <h2 className="text-2xl sm:text-5xl font-black text-gray-900 tracking-tight max-w-2xl mx-auto leading-tight">
         Huevos realmente frescos, del nido a tu cocina.
       </h2>
       <p className="mt-3 text-sm sm:text-lg text-gray-600 max-w-xl mx-auto">

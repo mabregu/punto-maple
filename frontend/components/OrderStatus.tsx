@@ -107,7 +107,7 @@ export default function OrderStatus({ code, initialStatus }: Props) {
           </div>
         )}
 
-        {order?.status === 'entregado' && (
+        {(order?.status === 'entregado' || order?.paymentStatus === 'approved') && (
           <div className="mb-3">
             <a
               href={`/reseniar/${code}`}

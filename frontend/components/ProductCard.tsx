@@ -20,22 +20,22 @@ export default function ProductCard({ product, onAdd }: Props) {
         </span>
       )}
 
-      <div>
+      <div className="pr-14 sm:pr-20">
         <div className="text-4xl mb-3">{product.icon}</div>
         <h4 className="font-bold text-gray-900 text-base leading-tight">{product.name}</h4>
-        <p className="text-xs text-gray-500 mt-1">{product.description}</p>
+        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{product.description}</p>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-        <div>
+      <div className="mt-4 pt-3 border-t border-gray-100 flex items-end justify-between gap-2">
+        <div className="min-w-0">
           <span className="text-xs text-gray-400 block">{product.unitText}</span>
-          <span className="text-xl font-extrabold text-gray-900">
+          <span className="text-lg sm:text-xl font-extrabold text-gray-900">
             ${product.priceArs.toLocaleString('es-AR')}
           </span>
         </div>
         <button
           onClick={() => onAdd(product.id)}
-          className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition"
+          className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-3 sm:py-2 rounded-xl text-sm sm:text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition shrink-0"
         >
           <span>+ Agregar</span>
         </button>
