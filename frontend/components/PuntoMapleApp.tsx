@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createOrder, createPaymentPreference, fetchProducts, fetchReviews, validateCoupon } from '@/lib/api';
 import { CASH_DISCOUNT_RATE, FREE_SHIPPING_THRESHOLD, SHIPPING_COST_ARS, WHATSAPP_PHONE } from '@/lib/config';
+import { FALLBACK_PRODUCTS } from '@/lib/fallback';
 import { detectAddress } from '@/lib/location';
 import type { AppliedCoupon, CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
 import CartDrawer from './CartDrawer';
@@ -33,7 +34,8 @@ const SAVED_FIELDS: Array<keyof CheckoutForm> = [
 ];
 
 export default function PuntoMapleApp() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
+  const [catalogLive, setCatalogLive] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [cart, setCart] = useState<Record<string, number>>({ 'maple-30': 1 });
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -51,7 +53,10 @@ export default function PuntoMapleApp() {
   const [locationMsg, setLocationMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProducts().then(setProducts);
+    fetchProducts().then((list) => {
+      setProducts(list);
+      setCatalogLive(list !== FALLBACK_PRODUCTS);
+    });
     fetchReviews().then(setReviews);
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -227,6 +232,22 @@ export default function PuntoMapleApp() {
           <h3 className="text-lg sm:text-xl font-bold text-gray-900">Elegí tu presentación:</h3>
           <span className="text-xs text-gray-500">Precios actualizados</span>
         </div>
+        {!catalogLive && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+            <span>
+              Estamos despertando el servicio de pedidos. Estás viendo el catálogo de respaldo; el total se confirma al armar el pedido.
+            </span>
+            <button
+              onClick={() => fetchProducts().then((list) => {
+                setProducts(list);
+                setCatalogLive(list !== FALLBACK_PRODUCTS);
+              })}
+              className="font-bold underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} onAdd={addToCart} />
