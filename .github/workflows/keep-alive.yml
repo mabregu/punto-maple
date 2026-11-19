@@ -19,5 +19,5 @@ jobs:
         run: |
           echo "Ping a $(date -u +'%Y-%m-%dT%H:%M:%SZ') UTC"
           curl --fail --silent --show-error --max-time 30 \
-            https://punto-maple-backend.onrender.com/api/health
+            https://punto-maple-backend.onrender.com/api/health/ping
           echo

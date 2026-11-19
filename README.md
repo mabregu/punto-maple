@@ -22,6 +22,7 @@ punto-maple/
 ## Endpoints
 
 - `GET /api/health` — estado de la API y de la DB
+- `GET /api/health/ping` — ping liviano para monitores externos (sin consulta a la DB)
 - `GET /api/products` — catálogo activo
 - `GET /api/products/admin` — todos los productos (requiere `x-admin-token`)
 - `PATCH /api/products/:id` — edita precio, equivalencia en maples y visibilidad (requiere `x-admin-token`)

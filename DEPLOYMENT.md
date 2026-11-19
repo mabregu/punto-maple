@@ -68,7 +68,7 @@ Render (plan free) suspende el servicio tras ~15 min de inactividad. Hay un work
 
 **Opción confiable gratuita:** crear un monitor en https://uptimerobot.com (plan free, 5 monitores) con:
 - Type: **HTTP(S)**
-- URL: `https://punto-maple-backend.onrender.com/api/health`
+- URL: `https://punto-maple-backend.onrender.com/api/health/ping` (endpoint liviano, **no** consulta Neon; `/api/health` sí lo hace y puede superar el timeout del monitor durante un cold start)
 - Interval: **5 minutes**
 
 **Defensa en profundidad ya implementada en la tienda:** si Render está despertando, el front usa un catálogo de respaldo, los fetches tienen timeout (8 s en lecturas) y aparece un aviso con botón *Reintentar*. Así la tienda nunca queda en blanco durante un cold start.

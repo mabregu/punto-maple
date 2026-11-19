@@ -1,4 +1,4 @@
-const url = 'https://punto-maple-backend.onrender.com/api/health';
+const url = 'https://punto-maple-backend.onrender.com/api/health/ping';
 
 try {
   const response = await fetch(url, { signal: AbortSignal.timeout(20000) });
