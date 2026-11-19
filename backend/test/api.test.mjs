@@ -252,6 +252,37 @@ test('rechaza "pagado" como estado de entrega', { skip: !ADMIN_TOKEN }, async ()
   assert.equal(status, 400);
 });
 
+test('flujo de reseña: envío, moderación y publicación', { skip: !ADMIN_TOKEN }, async () => {
+  const { body: order } = await postOrder();
+  const { status, body } = await api('/api/reviews', {
+    method: 'POST',
+    body: JSON.stringify({
+      orderCode: order.code,
+      rating: 5,
+      tags: ['Frescura'],
+      comment: 'Excelentes, llegaron fresquísimos',
+    }),
+  });
+  assert.equal(status, 201);
+  assert.equal(body.status, 'pending');
+
+  const pending = await api('/api/reviews/pending', {
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+  });
+  const found = pending.body.find((r) => r.order_code === order.code);
+  assert.ok(found);
+
+  const approved = await api(`/api/reviews/${found.id}/approved`, {
+    method: 'PATCH',
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({}),
+  });
+  assert.equal(approved.status, 200);
+
+  const published = await api('/api/reviews');
+  assert.ok(published.body.some((r) => r.comment === 'Excelentes, llegaron fresquísimos'));
+});
+
 test('limpia los pedidos de prueba', { skip: !ADMIN_TOKEN }, async () => {
   const { status, body } = await api('/api/orders/test', {
     method: 'DELETE',

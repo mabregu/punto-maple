@@ -35,6 +35,13 @@ punto-maple/
 - `GET /api/reviews/pending` — moderación (requiere `x-admin-token`)
 - `PATCH /api/reviews/:id/:status` — aprobar/rechazar (requiere `x-admin-token`)
 
+## Reseñas
+
+- `POST /api/reviews` — envía una reseña (queda `pending`). Formulario público en `/reseniar/[código]`.
+- `GET /api/reviews` — reseñas aprobadas (se muestran en la home).
+- `GET /api/reviews/pending` — moderación (requiere `x-admin-token`).
+- `PATCH /api/reviews/:id/:status` — aprobar/rechazar (requiere `x-admin-token`).
+
 ## Pagos con Mercado Pago
 
 Checkout Pro (Preferences API) como tercera opción, junto a Efectivo (-10%) y Transferencia.

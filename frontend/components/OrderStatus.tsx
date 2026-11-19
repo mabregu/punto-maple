@@ -107,6 +107,17 @@ export default function OrderStatus({ code, initialStatus }: Props) {
           </div>
         )}
 
+        {order?.status === 'entregado' && (
+          <div className="mb-3">
+            <a
+              href={`/reseniar/${code}`}
+              className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl"
+            >
+              ¿Te gustaron los huevos? Dejá tu opinión
+            </a>
+          </div>
+        )}
+
         <a href="/" className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl">
           Volver a la tienda
         </a>

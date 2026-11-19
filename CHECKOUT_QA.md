@@ -95,6 +95,16 @@ curl https://punto-maple-backend.onrender.com/api/health
 
 > Para producción hay que activar la app, configurar el webhook productivo y cargar `MP_WEBHOOK_SECRET` en Render.
 
+## C-3. Circuito de reseñas
+
+1. En `/admin`, pasá un pedido a **entregado**.
+2. Abrí `/pedido/[código]` → aparece el botón **"¿Te gustaron los huevos? Dejá tu opinión"**.
+3. Entrá a `/reseniar/[código]`: elegí estrellas, etiquetas opcionales y comentario.
+4. Al enviar, la reseña queda como `pending` y **no se publica todavía**.
+5. En `/admin` → **Reseñas por moderar** aparece con *Aprobar* / *Rechazar*.
+6. Si aprobás, se muestra en la tienda en **"Lo que dicen nuestros vecinos"** con el promedio.
+7. Si rechazás, no se publica. Un mismo pedido solo puede tener una reseña (se actualiza, no se duplica).
+
 ## D. Señales de alerta
 
 - El botón de WhatsApp abre un número distinto a `5491134591224`.

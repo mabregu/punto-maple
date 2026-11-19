@@ -62,6 +62,33 @@ export async function fetchOrder(code: string): Promise<OrderStatusDto | null> {
   }
 }
 
+export interface ReviewPayload {
+  orderCode: string;
+  rating: number;
+  tags?: string[];
+  comment?: string;
+  photoUrl?: string;
+}
+
+export async function submitReview(payload: ReviewPayload): Promise<{ ok: boolean; message?: string }> {
+  const res = await fetch(`${API_URL}/api/reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let message = 'No pudimos guardar tu reseña. Intentá nuevamente.';
+    try {
+      const err = await res.json();
+      if (err?.message) message = Array.isArray(err.message) ? err.message.join(', ') : err.message;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 export async function verifyPayment(code: string): Promise<{ received: boolean; status?: string }> {
   try {
     const res = await fetch(`${API_URL}/api/payments/verify`, {
