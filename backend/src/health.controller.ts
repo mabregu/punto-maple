@@ -3,6 +3,12 @@ import { checkDb } from './db';
 
 @Controller('health')
 export class HealthController {
+  /** Ping liviano para monitores externos: no consulta la DB, responde siempre rápido. */
+  @Get('ping')
+  ping() {
+    return { status: 'ok', service: 'punto-maple-api', timestamp: new Date().toISOString() };
+  }
+
   @Get()
   async health() {
     const db = await checkDb();
