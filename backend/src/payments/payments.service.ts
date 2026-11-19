@@ -16,7 +16,8 @@ export class PaymentsService {
   /** Crea la preferencia de Checkout Pro para un pedido ya registrado. */
   async createPreference(code: string) {
     const { rows } = await pool.query(
-      `SELECT code, pay_method, payment_status FROM orders WHERE code = $1`,
+      `SELECT code, pay_method, payment_status, shipping_ars, total_ars
+       FROM orders WHERE code = $1`,
       [code],
     );
     if (rows.length === 0) throw new NotFoundException('Pedido no encontrado');
@@ -34,13 +35,28 @@ export class PaymentsService {
     if (items.length === 0) throw new BadRequestException('El pedido no tiene ítems');
 
     const frontend = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
-    const preference = {
-      items: items.map((i) => ({
-        title: i.product_name,
-        quantity: i.quantity,
-        unit_price: Number(i.unit_price_ars),
+
+    const preferenceItems = items.map((i) => ({
+      title: i.product_name,
+      quantity: i.quantity,
+      unit_price: Number(i.unit_price_ars),
+      currency_id: 'ARS',
+    }));
+
+    // El total de la preferencia debe igualar el total del pedido: incluimos el envío.
+    const charged = preferenceItems.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
+    const missing = Number(order.total_ars) - charged;
+    if (missing > 0) {
+      preferenceItems.push({
+        title: Number(order.shipping_ars) > 0 ? 'Envío a domicilio - Punto Maple' : 'Ajuste de pedido',
+        quantity: 1,
+        unit_price: missing,
         currency_id: 'ARS',
-      })),
+      });
+    }
+
+    const preference = {
+      items: preferenceItems,
       external_reference: code,
       back_urls: {
         success: `${frontend}/pedido/${code}?status=approved`,
@@ -77,6 +93,7 @@ export class PaymentsService {
       preferenceId: pref.id,
       initPoint: isTestMode() ? pref.sandbox_init_point : pref.init_point,
       orderCode: code,
+      amount: Number(order.total_ars),
     };
   }
 

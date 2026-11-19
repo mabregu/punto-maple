@@ -113,8 +113,11 @@ test('transferencia no aplica descuento', async () => {
   assert.doesNotMatch(body.whatsappText, /Descuento por pago en efectivo/);
 });
 
-test('crea preferencia de Mercado Pago en sandbox', async () => {
-  const { status: orderStatus, body: order } = await postOrder({ payMethod: 'Mercado Pago' });
+test('crea preferencia de Mercado Pago con el total del pedido', async () => {
+  const { status: orderStatus, body: order } = await postOrder({
+    payMethod: 'Mercado Pago',
+    items: [{ productId: 'media-docena-6', quantity: 1 }],
+  });
   assert.equal(orderStatus, 201);
   assert.equal(order.hasCashDiscount, false);
 
@@ -126,6 +129,7 @@ test('crea preferencia de Mercado Pago en sandbox', async () => {
   assert.ok(body.preferenceId);
   assert.match(body.initPoint, /mercadopago\.com/);
   assert.equal(body.orderCode, order.code);
+  assert.equal(body.amount, order.totalArs);
 });
 
 test('verificación de respaldo consulta Mercado Pago', async () => {
