@@ -62,11 +62,16 @@ curl -X POST https://punto-maple-backend.onrender.com/api/orders \
 
 ## Keep alive de Render
 
-Render (plan free) suspende el servicio tras ~15 min de inactividad. Hay un workflow programado en `.github/workflows/keep-alive.yml` que hace ping a `/api/health` cada 10 minutos **las 24 horas**, usando GitHub Actions (gratis en repo público).
+Render (plan free) suspende el servicio tras ~15 min de inactividad. Hay un workflow programado en `.github/workflows/keep-alive.yml` que hace ping a `/api/health` cada 5 minutos las 24 horas (cron `*/5 * * * *`).
 
-- Para limitarlo a horario comercial (08:00–18:50 Argentina): cambiar el cron por `'*/10 11-21 * * *'`.
-- El repo es público; si se vuelve privado, revisar la cuota de minutos de Actions.
-- Se puede probar manualmente con `workflow_dispatch` desde Actions → *Keep Alive - Punto Maple* → *Run workflow*.
+**Limitación detectada:** GitHub Actions retrasa y hasta saltea ejecuciones `schedule` en el plan gratuito (se observaron intervalos de varias horas). Por eso el keep-alive de GitHub es **mejor que nada pero no confiable**. Render solo permite Cron Jobs en planes de pago, así que no es una opción gratis.
+
+**Opción confiable gratuita:** crear un monitor en https://uptimerobot.com (plan free, 5 monitores) con:
+- Type: **HTTP(S)**
+- URL: `https://punto-maple-backend.onrender.com/api/health`
+- Interval: **5 minutes**
+
+**Defensa en profundidad ya implementada en la tienda:** si Render está despertando, el front usa un catálogo de respaldo, los fetches tienen timeout (8 s en lecturas) y aparece un aviso con botón *Reintentar*. Así la tienda nunca queda en blanco durante un cold start.
 
 ## Edición de precios
 
