@@ -23,6 +23,13 @@ interface Props {
   onRemoveCoupon: () => void;
   couponError: string | null;
   couponLoading: boolean;
+  remember: boolean;
+  onRememberChange: (value: boolean) => void;
+  hasSaved: boolean;
+  onClearSaved: () => void;
+  onDetectLocation: () => void;
+  locating: boolean;
+  locationMsg: string | null;
 }
 
 const ZONES = [
@@ -53,6 +60,13 @@ export default function CartDrawer({
   onRemoveCoupon,
   couponError,
   couponLoading,
+  remember,
+  onRememberChange,
+  hasSaved,
+  onClearSaved,
+  onDetectLocation,
+  locating,
+  locationMsg,
 }: Props) {
   const items = Object.entries(cart);
 
@@ -155,7 +169,30 @@ export default function CartDrawer({
               <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-700">{error}</div>
             )}
 
-            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Datos para la entrega</h4>
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Datos para la entrega</h4>
+              {hasSaved && (
+                <button onClick={onClearSaved} className="text-[10px] text-gray-500 underline">
+                  Borrar datos guardados
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onDetectLocation}
+              disabled={locating}
+              className="w-full flex items-center justify-center gap-2 border border-amber-300 bg-amber-50 text-amber-800 text-xs font-bold py-3 rounded-lg hover:bg-amber-100 disabled:opacity-60"
+            >
+              <span>📍</span>
+              {locating ? 'Detectando ubicación…' : 'Completar con mi ubicación actual'}
+            </button>
+            {locationMsg && (
+              <p className="text-[11px] text-gray-600 bg-white border border-gray-200 rounded-lg p-2">
+                {locationMsg}
+              </p>
+            )}
+
             <div className="grid grid-cols-1 gap-2">
               <input
                 type="text"
@@ -204,6 +241,16 @@ export default function CartDrawer({
                 className="w-full text-base sm:text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
               />
             </div>
+
+            <label className="flex items-center gap-2 text-[11px] text-gray-600">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => onRememberChange(e.target.checked)}
+                className="text-amber-500 focus:ring-amber-400"
+              />
+              Recordar mis datos en este dispositivo para la próxima compra
+            </label>
 
             <div className="border-t border-gray-200 pt-3">
               <label className="text-xs font-semibold text-gray-600 block mb-1">

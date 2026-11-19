@@ -115,6 +115,16 @@ curl https://punto-maple-backend.onrender.com/api/health
 
 > El descuento por efectivo (10%) se calcula **después** del cupón, sobre el subtotal ya descontado.
 
+## C-5. Datos guardados y ubicación
+
+1. En el carrito, completar nombre/teléfono/dirección y dejar marcado **"Recordar mis datos en este dispositivo"**.
+2. Confirmar un pedido → al volver a abrir el carrito (o recargar la página), los datos deben aparecer precargados.
+3. Tocar **"Borrar datos guardados"** → se limpia el `localStorage` y los campos quedan como estaban.
+4. Tocar **"Completar con mi ubicación actual"** → el navegador pide permiso; si estás en zona de entrega, se completan *Zona* y *Calle y Altura* con la dirección detectada.
+5. Revisar siempre la dirección detectada antes de confirmar (la geocodificación puede ser imprecisa). Si estás fuera de Ensenada/Berisso/La Plata, aparece un aviso y se completa a mano.
+
+> La geolocalización solo se pide al tocar el botón (nunca automáticamente) y necesita HTTPS, que ya tenemos en Vercel.
+
 ## D. Señales de alerta
 
 - El botón de WhatsApp abre un número distinto a `5491134591224`.

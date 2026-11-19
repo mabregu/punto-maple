@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createOrder, createPaymentPreference, fetchProducts, fetchReviews, validateCoupon } from '@/lib/api';
 import { CASH_DISCOUNT_RATE, FREE_SHIPPING_THRESHOLD, SHIPPING_COST_ARS, WHATSAPP_PHONE } from '@/lib/config';
+import { detectAddress } from '@/lib/location';
 import type { AppliedCoupon, CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
 import CartDrawer from './CartDrawer';
 import Footer from './Footer';
@@ -26,6 +27,11 @@ const EMPTY_FORM: CheckoutForm = {
 
 type Review = { rating: number; comment: string | null; customerName: string | null; tags: string[] };
 
+const STORAGE_KEY = 'pm_customer_data';
+const SAVED_FIELDS: Array<keyof CheckoutForm> = [
+  'customerName', 'phone', 'zone', 'street', 'between', 'deliveryNotes',
+];
+
 export default function PuntoMapleApp() {
   const [products, setProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -39,10 +45,30 @@ export default function PuntoMapleApp() {
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [remember, setRemember] = useState(true);
+  const [hasSaved, setHasSaved] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationMsg, setLocationMsg] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts().then(setProducts);
     fetchReviews().then(setReviews);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        setForm((prev) => {
+          const next = { ...prev };
+          for (const field of SAVED_FIELDS) {
+            if (typeof saved[field] === 'string') next[field] = saved[field];
+          }
+          return next;
+        });
+        setHasSaved(true);
+      }
+    } catch {
+      /* datos guardados corruptos: los ignoramos */
+    }
   }, []);
 
   const totals: Totals = useMemo(() => {
@@ -123,6 +149,26 @@ export default function PuntoMapleApp() {
     setCouponError(null);
   };
 
+  const detectLocation = async () => {
+    setLocating(true);
+    setLocationMsg(null);
+    try {
+      const detected = await detectAddress();
+      setForm((prev) => ({ ...prev, zone: detected.zone, street: detected.street, between: detected.between }));
+      setLocationMsg(`Ubicación detectada: ${detected.label}. Revisá y corregí si hace falta.`);
+    } catch (e) {
+      setLocationMsg(e instanceof Error ? e.message : 'No pudimos detectar tu ubicación.');
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  const clearSaved = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setHasSaved(false);
+    setLocationMsg('Datos guardados borrados de este dispositivo.');
+  };
+
   const handleSubmit = async () => {
     if (!form.customerName.trim() || !form.street.trim() || !form.phone.trim()) {
       setError('Completá tu nombre, teléfono y dirección de entrega.');
@@ -137,6 +183,14 @@ export default function PuntoMapleApp() {
     try {
       const items = Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity }));
       const order = await createOrder(form, items);
+
+      if (remember) {
+        const data: Partial<CheckoutForm> = {};
+        for (const field of SAVED_FIELDS) data[field] = form[field];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        setHasSaved(true);
+      }
+
       setAppliedCoupon(null);
       setForm((prev) => ({ ...prev, couponCode: '' }));
 
@@ -204,6 +258,13 @@ export default function PuntoMapleApp() {
         onRemoveCoupon={removeCoupon}
         couponError={couponError}
         couponLoading={couponLoading}
+        remember={remember}
+        onRememberChange={setRemember}
+        hasSaved={hasSaved}
+        onClearSaved={clearSaved}
+        onDetectLocation={detectLocation}
+        locating={locating}
+        locationMsg={locationMsg}
       />
     </>
   );

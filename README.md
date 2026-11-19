@@ -35,6 +35,11 @@ punto-maple/
 - `GET /api/reviews/pending` — moderación (requiere `x-admin-token`)
 - `PATCH /api/reviews/:id/:status` — aprobar/rechazar (requiere `x-admin-token`)
 
+## Datos del cliente y ubicación
+
+- Los datos de entrega se guardan en `localStorage` (`pm_customer_data`) si el cliente marca *"Recordar mis datos"*. Se pueden borrar desde el propio carrito.
+- El botón *"Completar con mi ubicación actual"* usa `navigator.geolocation` + Nominatim (OpenStreetMap) para prellenar zona y calle, solo tras una acción del usuario. La dirección detectada siempre queda editable.
+
 ## Cupones y referidos
 
 - `POST /api/coupons/validate` — valida un código y calcula el descuento (público).
