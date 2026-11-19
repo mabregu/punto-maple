@@ -79,6 +79,8 @@ Desde `/admin` → **Productos y precios** se puede cambiar el precio, la equiva
 - **Test user automático:** seller `3858066704`, app seller `2141164586081201`, buyer `3853745873`.
 - **Credenciales de test** (`MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`) cargadas en Render. `MP_MODE=test`.
 - **Fallback:** si el webhook no llega, la página `/pedido/[code]` llama a `POST /api/payments/verify` y consulta MP por `external_reference`.
+- La preferencia incluye el **envío como ítem separado** ("Envío a domicilio - Punto Maple") para que el cobro total iguale el total del pedido.
+- Un pago `refunded`/`charged_back` marca el pedido como `cancelado`.
 
 ### Pendiente de configuración manual (panel de MP)
 

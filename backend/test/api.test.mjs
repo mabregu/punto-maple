@@ -142,13 +142,12 @@ test('verificación de respaldo consulta Mercado Pago', async () => {
   assert.equal(body.received, true);
 });
 
-test('webhook sin datos se ignora sin error', async () => {
-  const { status, body } = await api('/api/payments/webhook', {
+test('webhook sin firma es rechazado', async () => {
+  const { status } = await api('/api/payments/webhook', {
     method: 'POST',
     body: JSON.stringify({}),
   });
-  assert.equal(status, 201);
-  assert.equal(body.ignored, true);
+  assert.equal(status, 401);
 });
 
 test('envío pagado con 2,4 maples', async () => {
