@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Punto Maple">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBBF24"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#fondo)"/>
+  <path d="M32 10.5c-8.4 0-15.5 12.8-15.5 25a15.5 15.5 0 0 0 31 0c0-12.2-7.1-25-15.5-25z" fill="#FFFDF5"/>
+  <ellipse cx="26.6" cy="30" rx="3.1" ry="6.2" fill="#FFFFFF" opacity="0.8" transform="rotate(-18 26.6 30)"/>
+  <circle cx="35" cy="39" r="4.5" fill="#F2A93B" opacity="0.9"/>
+  <circle cx="33.6" cy="37.8" r="1.4" fill="#FFFFFF" opacity="0.75"/>
+</svg>
