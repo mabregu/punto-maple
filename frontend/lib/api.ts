@@ -62,6 +62,53 @@ export async function fetchOrder(code: string): Promise<OrderStatusDto | null> {
   }
 }
 
+export interface Coupon {
+  code: string;
+  description: string;
+  kind: string;
+  discountType: string;
+  value: number;
+  maxUses: number;
+  uses: number;
+  active: boolean;
+  expiresAt: string | null;
+}
+
+export async function validateCoupon(code: string, subtotal: number): Promise<{ valid: boolean; coupon?: Coupon; discount?: number; reason?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/coupons/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, subtotal }),
+    });
+    if (!res.ok) return { valid: false, reason: 'No se pudo validar el cupón' };
+    return res.json();
+  } catch {
+    return { valid: false, reason: 'No se pudo validar el cupón' };
+  }
+}
+
+export async function fetchCoupons(token: string): Promise<Coupon[]> {
+  return fetchAdmin<Coupon[]>('/api/coupons', token);
+}
+
+export async function createCoupon(token: string, payload: Partial<Coupon>): Promise<Coupon> {
+  const res = await fetch(`${API_URL}/api/coupons`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || 'No se pudo crear el cupón');
+  }
+  return res.json();
+}
+
+export async function toggleCoupon(token: string, code: string, active: boolean): Promise<Coupon> {
+  return patchAdmin<Coupon>(`/api/coupons/${encodeURIComponent(code)}`, token, { active });
+}
+
 export interface ReviewPayload {
   orderCode: string;
   rating: number;

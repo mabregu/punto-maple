@@ -252,6 +252,37 @@ test('rechaza "pagado" como estado de entrega', { skip: !ADMIN_TOKEN }, async ()
   assert.equal(status, 400);
 });
 
+test('cupón inválido es rechazado', async () => {
+  const { status, body } = await api('/api/coupons/validate', {
+    method: 'POST',
+    body: JSON.stringify({ code: 'NOEXISTE', subtotal: 10000 }),
+  });
+  assert.equal(status, 201);
+  assert.equal(body.valid, false);
+});
+
+test('cupón de referido aplica descuento y se contabiliza', { skip: !ADMIN_TOKEN }, async () => {
+  const code = `TEST${Date.now().toString().slice(-6)}`;
+  const created = await api('/api/coupons', {
+    method: 'POST',
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ code, description: 'Cupón de prueba', kind: 'referral', discountType: 'percent', value: 10, maxUses: 5 }),
+  });
+  assert.equal(created.status, 201);
+
+  const price = (await catalog())['maple-30'].priceArs;
+  const { body: order } = await postOrder({
+    couponCode: code,
+    payMethod: 'Transferencia (CBU/Alias)',
+    items: [{ productId: 'maple-30', quantity: 1 }],
+  });
+  assert.equal(order.couponCode, code);
+  assert.equal(order.couponDiscountArs, Math.round(price * 0.1));
+
+  const list = await api('/api/coupons', { headers: { 'x-admin-token': ADMIN_TOKEN } });
+  assert.equal(list.body.find((c) => c.code === code).uses, 1);
+});
+
 test('flujo de reseña: envío, moderación y publicación', { skip: !ADMIN_TOKEN }, async () => {
   const { body: order } = await postOrder();
   const { status, body } = await api('/api/reviews', {
@@ -278,6 +309,8 @@ test('flujo de reseña: envío, moderación y publicación', { skip: !ADMIN_TOKE
     body: JSON.stringify({}),
   });
   assert.equal(approved.status, 200);
+  assert.ok(approved.body.couponCode);
+  assert.match(approved.body.couponCode, /^GRACIAS-/);
 
   const published = await api('/api/reviews');
   assert.ok(published.body.some((r) => r.comment === 'Excelentes, llegaron fresquísimos'));

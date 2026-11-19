@@ -35,6 +35,15 @@ punto-maple/
 - `GET /api/reviews/pending` — moderación (requiere `x-admin-token`)
 - `PATCH /api/reviews/:id/:status` — aprobar/rechazar (requiere `x-admin-token`)
 
+## Cupones y referidos
+
+- `POST /api/coupons/validate` — valida un código y calcula el descuento (público).
+- `GET /api/coupons` — listado (requiere `x-admin-token`).
+- `POST /api/coupons` — crear cupón (requiere `x-admin-token`).
+- `PATCH /api/coupons/:code` — activar/pausar (requiere `x-admin-token`).
+- El campo `couponCode` en `POST /api/orders` aplica el cupón y incrementa sus usos en la misma transacción.
+- Al aprobar una reseña se genera automáticamente un cupón `GRACIAS-XXXX` (10%, 1 uso) para el cliente.
+
 ## Reseñas
 
 - `POST /api/reviews` — envía una reseña (queda `pending`). Formulario público en `/reseniar/[código]`.

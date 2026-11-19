@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS orders (
   pay_method     TEXT NOT NULL DEFAULT 'Efectivo al recibir',
   subtotal_ars   INTEGER NOT NULL,
   discount_ars   INTEGER NOT NULL DEFAULT 0,
+  coupon_code    TEXT,
+  coupon_discount_ars INTEGER NOT NULL DEFAULT 0,
   shipping_ars   INTEGER NOT NULL DEFAULT 0,
   total_ars      INTEGER NOT NULL,
   total_maples   NUMERIC(6,2) NOT NULL DEFAULT 0,
@@ -61,9 +63,23 @@ CREATE TABLE IF NOT EXISTS reviews (
   tags        TEXT[] NOT NULL DEFAULT '{}',
   comment     TEXT,
   photo_url   TEXT,
+  reward_coupon_code TEXT,
   status      TEXT NOT NULL DEFAULT 'pending',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS coupons (
+  code          TEXT PRIMARY KEY,
+  description   TEXT NOT NULL DEFAULT '',
+  kind          TEXT NOT NULL DEFAULT 'manual',
+  discount_type TEXT NOT NULL DEFAULT 'percent',
+  value         INTEGER NOT NULL,
+  max_uses      INTEGER NOT NULL DEFAULT 1,
+  uses          INTEGER NOT NULL DEFAULT 0,
+  active        BOOLEAN NOT NULL DEFAULT true,
+  expires_at    TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS mp_webhook_events (

@@ -147,11 +147,14 @@ export class PaymentsService {
       [code],
     );
     if (current.rows.length === 0) return { received: true, ignored: true, reason: 'orden inexistente' };
-    if (current.rows[0].payment_status === 'approved' && status !== 'approved') {
+
+    const isRefund = status === 'refunded' || status === 'charged_back';
+    // Un reembolso debe poder revertir un pago previamente aprobado.
+    if (!isRefund && current.rows[0].payment_status === 'approved' && status !== 'approved') {
       return { received: true, ignored: true, reason: 'pago ya aprobado' };
     }
 
-    if (status === 'refunded' || status === 'charged_back') {
+    if (isRefund) {
       await pool.query(
         `UPDATE orders SET payment_status = $1, status = 'cancelado', updated_at = now()
          WHERE code = $2`,

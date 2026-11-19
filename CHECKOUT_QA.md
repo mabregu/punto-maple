@@ -105,6 +105,16 @@ curl https://punto-maple-backend.onrender.com/api/health
 6. Si aprobás, se muestra en la tienda en **"Lo que dicen nuestros vecinos"** con el promedio.
 7. Si rechazás, no se publica. Un mismo pedido solo puede tener una reseña (se actualiza, no se duplica).
 
+## C-4. Cupones, referidos e incentivo por reseña
+
+1. En `/admin` → **Cupones y referidos**, crear un cupón (ej. `VECINO10`, 10%, 100 usos) o dejar el código vacío para que se autogenere.
+2. En el carrito, cargar el código en *"¿Tenés un código de descuento?"* → *Aplicar*. Debe aparecer el descuento en el resumen antes de confirmar.
+3. Confirmar el pedido → el total de MP/WhatsApp debe coincidir y el contador de usos del cupón aumenta en 1.
+4. Al aprobar una reseña en **Reseñas por moderar**, se genera un cupón `GRACIAS-XXXX` que aparece en la fila para enviárselo al cliente (10% off, 1 uso).
+5. Un cupón vencido, pausado o sin usos disponibles debe ser rechazado con mensaje claro.
+
+> El descuento por efectivo (10%) se calcula **después** del cupón, sobre el subtotal ya descontado.
+
 ## D. Señales de alerta
 
 - El botón de WhatsApp abre un número distinto a `5491134591224`.

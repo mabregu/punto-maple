@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createOrder, createPaymentPreference, fetchProducts, fetchReviews } from '@/lib/api';
+import { createOrder, createPaymentPreference, fetchProducts, fetchReviews, validateCoupon } from '@/lib/api';
 import { CASH_DISCOUNT_RATE, FREE_SHIPPING_THRESHOLD, SHIPPING_COST_ARS, WHATSAPP_PHONE } from '@/lib/config';
-import type { CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
+import type { AppliedCoupon, CheckoutForm, OrderResult, Product, Totals } from '@/lib/types';
 import CartDrawer from './CartDrawer';
 import Footer from './Footer';
 import Header from './Header';
@@ -20,6 +20,7 @@ const EMPTY_FORM: CheckoutForm = {
   street: '',
   between: '',
   deliveryNotes: '',
+  couponCode: '',
   payMethod: 'Efectivo al recibir',
 };
 
@@ -34,6 +35,10 @@ export default function PuntoMapleApp() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OrderResult | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   useEffect(() => {
     fetchProducts().then(setProducts);
@@ -51,20 +56,27 @@ export default function PuntoMapleApp() {
       totalMaples += product.maplesEquivalent * qty;
       totalItems += qty;
     }
+    const couponDiscount = appliedCoupon
+      ? appliedCoupon.discountType === 'percent'
+        ? Math.round(subtotal * (appliedCoupon.value / 100))
+        : Math.min(appliedCoupon.value, subtotal)
+      : 0;
     const isCash = /efectivo/i.test(form.payMethod);
-    const discount = isCash ? Math.round(subtotal * CASH_DISCOUNT_RATE) : 0;
+    const afterCoupon = subtotal - couponDiscount;
+    const discount = isCash ? Math.round(afterCoupon * CASH_DISCOUNT_RATE) : 0;
     const isFreeShipping = totalMaples >= FREE_SHIPPING_THRESHOLD;
     const shipping = totalItems === 0 ? 0 : isFreeShipping ? 0 : SHIPPING_COST_ARS;
     return {
       subtotal,
+      couponDiscount,
       discount,
       shipping,
-      total: subtotal - discount + shipping,
+      total: afterCoupon - discount + shipping,
       totalMaples,
       totalItems,
       isFreeShipping,
     };
-  }, [cart, products, form.payMethod]);
+  }, [cart, products, form.payMethod, appliedCoupon]);
 
   const addToCart = (id: string) => {
     setResult(null);
@@ -82,6 +94,35 @@ export default function PuntoMapleApp() {
     });
   };
 
+  const applyCoupon = async () => {
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const result = await validateCoupon(couponInput, totals.subtotal);
+      if (!result.valid || !result.coupon) {
+        setCouponError(result.reason || 'Código inválido');
+        return;
+      }
+      setAppliedCoupon({
+        code: result.coupon.code,
+        discountType: result.coupon.discountType,
+        value: result.coupon.value,
+      });
+      setForm((prev) => ({ ...prev, couponCode: result.coupon!.code }));
+      setCouponInput('');
+    } catch {
+      setCouponError('No se pudo validar el cupón');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setForm((prev) => ({ ...prev, couponCode: '' }));
+    setCouponError(null);
+  };
+
   const handleSubmit = async () => {
     if (!form.customerName.trim() || !form.street.trim() || !form.phone.trim()) {
       setError('Completá tu nombre, teléfono y dirección de entrega.');
@@ -96,6 +137,8 @@ export default function PuntoMapleApp() {
     try {
       const items = Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity }));
       const order = await createOrder(form, items);
+      setAppliedCoupon(null);
+      setForm((prev) => ({ ...prev, couponCode: '' }));
 
       if (form.payMethod === 'Mercado Pago') {
         const preference = await createPaymentPreference(order.code);
@@ -154,6 +197,13 @@ export default function PuntoMapleApp() {
         submitting={submitting}
         error={error}
         result={result}
+        appliedCoupon={appliedCoupon}
+        couponInput={couponInput}
+        onCouponInput={setCouponInput}
+        onApplyCoupon={applyCoupon}
+        onRemoveCoupon={removeCoupon}
+        couponError={couponError}
+        couponLoading={couponLoading}
       />
     </>
   );

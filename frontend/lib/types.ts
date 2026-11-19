@@ -19,6 +19,7 @@ export interface CheckoutForm {
   street: string;
   between: string;
   deliveryNotes: string;
+  couponCode: string;
   payMethod: string;
 }
 
@@ -37,8 +38,15 @@ export interface OrderResult {
   whatsappText: string;
 }
 
+export interface AppliedCoupon {
+  code: string;
+  discountType: string;
+  value: number;
+}
+
 export interface Totals {
   subtotal: number;
+  couponDiscount: number;
   discount: number;
   shipping: number;
   total: number;

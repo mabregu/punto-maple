@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { fetchAdmin, patchAdmin } from '@/lib/api';
+import { createCoupon, fetchAdmin, fetchCoupons, patchAdmin, toggleCoupon, type Coupon } from '@/lib/api';
 import type { Product } from '@/lib/types';
 
 interface Order {
@@ -30,6 +30,7 @@ interface PendingReview {
   rating: number;
   tags: string[];
   comment: string | null;
+  reward_coupon_code: string | null;
   created_at: string;
 }
 
@@ -45,6 +46,16 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<Product[]>([]);
   const [draft, setDraft] = useState<Record<string, ProductDraft>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [couponDraft, setCouponDraft] = useState({
+    code: '',
+    description: '',
+    kind: 'referral',
+    discountType: 'percent',
+    value: '10',
+    maxUses: '100',
+  });
+  const [couponError, setCouponError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -53,11 +64,13 @@ export default function AdminPanel() {
       setLoading(true);
       setError(null);
       try {
-        const [o, r, p] = await Promise.all([
+        const [o, r, p, c] = await Promise.all([
           fetchAdmin<Order[]>('/api/orders', activeToken),
           fetchAdmin<PendingReview[]>('/api/reviews/pending', activeToken),
           fetchAdmin<Product[]>('/api/products/admin', activeToken),
+          fetchCoupons(activeToken),
         ]);
+        setCoupons(c);
         setOrders(o);
         setReviews(r);
         setProducts(p);
@@ -105,6 +118,29 @@ export default function AdminPanel() {
   const moderate = async (id: string, status: string) => {
     await patchAdmin(`/api/reviews/${id}/${status}`, savedToken, {});
     load(savedToken);
+  };
+
+  const handleCreateCoupon = async () => {
+    setCouponError(null);
+    try {
+      await createCoupon(savedToken, {
+        code: couponDraft.code.trim() || undefined,
+        description: couponDraft.description.trim() || undefined,
+        kind: couponDraft.kind as 'manual' | 'review' | 'referral',
+        discountType: couponDraft.discountType as 'percent' | 'fixed',
+        value: Number(couponDraft.value),
+        maxUses: Number(couponDraft.maxUses),
+      });
+      setCouponDraft({ code: '', description: '', kind: 'referral', discountType: 'percent', value: '10', maxUses: '100' });
+      await load(savedToken);
+    } catch (e) {
+      setCouponError(e instanceof Error ? e.message : 'No se pudo crear el cupón');
+    }
+  };
+
+  const handleToggleCoupon = async (code: string, active: boolean) => {
+    await toggleCoupon(savedToken, code, active);
+    await load(savedToken);
   };
 
   const saveProduct = async (id: string) => {
@@ -274,6 +310,93 @@ export default function AdminPanel() {
           ))}
         </div>
 
+        <h2 className="text-lg font-bold text-gray-900 mb-3">Cupones y referidos</h2>
+        <p className="text-xs text-gray-500 mb-3">
+          Los cupones de reseña se generan solos al aprobar una opinión. Los de referido podés compartirlos con tus clientes.
+        </p>
+        <div className="bg-white rounded-2xl border border-amber-100 p-4 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+            <input
+              value={couponDraft.code}
+              onChange={(e) => setCouponDraft({ ...couponDraft, code: e.target.value.toUpperCase() })}
+              placeholder="CÓDIGO (auto si vacío)"
+              className="p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+            <input
+              value={couponDraft.description}
+              onChange={(e) => setCouponDraft({ ...couponDraft, description: e.target.value })}
+              placeholder="Descripción"
+              className="p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+            <select
+              value={couponDraft.kind}
+              onChange={(e) => setCouponDraft({ ...couponDraft, kind: e.target.value })}
+              className="p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            >
+              <option value="referral">Referido</option>
+              <option value="manual">Manual</option>
+            </select>
+            <select
+              value={couponDraft.discountType}
+              onChange={(e) => setCouponDraft({ ...couponDraft, discountType: e.target.value })}
+              className="p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            >
+              <option value="percent">% off</option>
+              <option value="fixed">$ fijo</option>
+            </select>
+            <input
+              type="number"
+              value={couponDraft.value}
+              onChange={(e) => setCouponDraft({ ...couponDraft, value: e.target.value })}
+              placeholder="Valor"
+              className="p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+            <input
+              type="number"
+              value={couponDraft.maxUses}
+              onChange={(e) => setCouponDraft({ ...couponDraft, maxUses: e.target.value })}
+              placeholder="Usos máx."
+              className="p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+            <button
+              onClick={handleCreateCoupon}
+              className="sm:col-span-2 bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg"
+            >
+              Crear cupón
+            </button>
+          </div>
+          {couponError && <p className="text-[10px] text-red-600 mt-2">{couponError}</p>}
+        </div>
+        <div className="bg-white rounded-2xl border border-amber-100 overflow-hidden mb-8">
+          {coupons.length === 0 ? (
+            <p className="p-6 text-sm text-gray-400">Todavía no hay cupones.</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {coupons.map((c) => (
+                <div key={c.code} className="p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div>
+                    <p className="font-black text-gray-900">
+                      {c.code}{' '}
+                      <span className="text-[10px] font-normal text-gray-400">({c.kind})</span>
+                    </p>
+                    <p className="text-gray-500">
+                      {c.description} · {c.discountType === 'percent' ? `${c.value}%` : `$${c.value}`} · {c.uses}/{c.maxUses} usos
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleToggleCoupon(c.code, !c.active)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                      c.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
+                    {c.active ? 'Activo' : 'Pausado'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <h2 className="text-lg font-bold text-gray-900 mb-3">Pedidos recientes</h2>
         <div className="bg-white rounded-2xl border border-amber-100 overflow-hidden mb-8">
           {orders.length === 0 ? (
@@ -356,6 +479,9 @@ export default function AdminPanel() {
                     <p className="font-black text-amber-600">{'★'.repeat(r.rating)}</p>
                     <p className="text-gray-700">{r.comment || '(sin comentario)'}</p>
                     <p className="text-gray-400">{r.order_code} · {(r.tags || []).join(', ')}</p>
+                    {r.reward_coupon_code && (
+                      <p className="text-emerald-700 font-bold">Cupón para el cliente: {r.reward_coupon_code}</p>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button

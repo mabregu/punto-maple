@@ -16,6 +16,13 @@ interface Props {
   submitting: boolean;
   error: string | null;
   result: OrderResult | null;
+  appliedCoupon: { code: string; discountType: string; value: number } | null;
+  couponInput: string;
+  onCouponInput: (value: string) => void;
+  onApplyCoupon: () => void;
+  onRemoveCoupon: () => void;
+  couponError: string | null;
+  couponLoading: boolean;
 }
 
 const ZONES = [
@@ -39,6 +46,13 @@ export default function CartDrawer({
   submitting,
   error,
   result,
+  appliedCoupon,
+  couponInput,
+  onCouponInput,
+  onApplyCoupon,
+  onRemoveCoupon,
+  couponError,
+  couponLoading,
 }: Props) {
   const items = Object.entries(cart);
 
@@ -191,6 +205,40 @@ export default function CartDrawer({
               />
             </div>
 
+            <div className="border-t border-gray-200 pt-3">
+              <label className="text-xs font-semibold text-gray-600 block mb-1">
+                ¿Tenés un código de descuento?
+              </label>
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                  <span className="text-xs font-bold text-emerald-800">
+                    ✓ {appliedCoupon.code} aplicado
+                  </span>
+                  <button onClick={onRemoveCoupon} className="text-[11px] text-emerald-700 underline">
+                    Quitar
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => onCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Ej: VECINO10"
+                    className="flex-1 text-xs p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white uppercase"
+                  />
+                  <button
+                    onClick={onApplyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white text-xs font-bold px-4 rounded-lg"
+                  >
+                    {couponLoading ? '…' : 'Aplicar'}
+                  </button>
+                </div>
+              )}
+              {couponError && <p className="text-[10px] text-red-600 mt-1">{couponError}</p>}
+            </div>
+
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1">Medio de Pago:</label>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -224,6 +272,12 @@ export default function CartDrawer({
                 <span>Subtotal productos:</span>
                 <span className="font-semibold">${totals.subtotal.toLocaleString('es-AR')}</span>
               </div>
+              {totals.couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>Cupón {form.couponCode}:</span>
+                  <span className="font-bold">-${totals.couponDiscount.toLocaleString('es-AR')}</span>
+                </div>
+              )}
               {totals.discount > 0 && (
                 <div className="flex justify-between text-emerald-700">
                   <span>Descuento por pago en efectivo:</span>

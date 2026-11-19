@@ -13,6 +13,7 @@ export interface CreateOrderDto {
   street: string;
   between?: string;
   deliveryNotes?: string;
+  couponCode?: string;
   payMethod: string;
   items: OrderItemInput[];
   testMode?: boolean;
@@ -68,15 +69,35 @@ export class OrdersService {
       throw new BadRequestException('Ningún producto del carrito está disponible');
     }
 
+    let couponCode: string | null = null;
+    let couponDiscount = 0;
+    const requestedCoupon = dto.couponCode?.trim().toUpperCase();
+    if (requestedCoupon) {
+      const { rows: coupons } = await pool.query(
+        `SELECT * FROM coupons
+         WHERE code = $1 AND active = true AND uses < max_uses
+           AND (expires_at IS NULL OR expires_at > now())`,
+        [requestedCoupon],
+      );
+      const coupon = coupons[0];
+      if (coupon) {
+        couponCode = coupon.code;
+        couponDiscount = coupon.discount_type === 'percent'
+          ? Math.round(subtotal * (Number(coupon.value) / 100))
+          : Math.min(Number(coupon.value), subtotal);
+      }
+    }
+
     const payMethod = dto.payMethod?.trim() || 'Efectivo al recibir';
     const isCash = /efectivo/i.test(payMethod);
     const discountRate = Number(process.env.CASH_DISCOUNT_RATE || 0.1);
-    const discount = isCash ? Math.round(subtotal * discountRate) : 0;
+    const afterCoupon = subtotal - couponDiscount;
+    const discount = isCash ? Math.round(afterCoupon * discountRate) : 0;
 
     const threshold = Number(process.env.FREE_SHIPPING_MAPLES_THRESHOLD || 3);
     const shippingCost = Number(process.env.SHIPPING_COST_ARS || 1500);
     const shipping = totalMaples >= threshold ? 0 : shippingCost;
-    const total = subtotal - discount + shipping;
+    const total = afterCoupon - discount + shipping;
     const code = orderCode();
 
     const client = await pool.connect();
@@ -85,9 +106,9 @@ export class OrdersService {
       await client.query(
         `INSERT INTO orders
           (code, customer_name, phone, zone, street, between_street, pay_method,
-           subtotal_ars, discount_ars, shipping_ars, total_ars, total_maples, status, is_test,
-           delivery_notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'confirmado',$13,$14)`,
+           subtotal_ars, discount_ars, coupon_code, coupon_discount_ars,
+           shipping_ars, total_ars, total_maples, status, is_test, delivery_notes)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'confirmado',$15,$16)`,
         [
           code,
           dto.customerName.trim(),
@@ -98,6 +119,8 @@ export class OrdersService {
           payMethod,
           subtotal,
           discount,
+          couponCode,
+          couponDiscount,
           shipping,
           total,
           Number(totalMaples.toFixed(2)),
@@ -111,6 +134,9 @@ export class OrdersService {
            VALUES ((SELECT id FROM orders WHERE code = $1), $2, $3, $4, $5, $6)`,
           [code, line.productId, line.name, line.quantity, line.unitPrice, line.lineTotal],
         );
+      }
+      if (couponCode) {
+        await client.query(`UPDATE coupons SET uses = uses + 1 WHERE code = $1`, [couponCode]);
       }
       await client.query('COMMIT');
     } catch (error) {
@@ -130,6 +156,8 @@ export class OrdersService {
       payMethod,
       items: lines,
       subtotalArs: subtotal,
+      couponCode,
+      couponDiscountArs: couponDiscount,
       discountArs: discount,
       hasCashDiscount: discount > 0,
       shippingArs: shipping,
@@ -140,7 +168,7 @@ export class OrdersService {
         code, customerName: dto.customerName.trim(), phone: dto.phone,
         zone: dto.zone.trim(), street: dto.street.trim(), between: dto.between,
         deliveryNotes: dto.deliveryNotes,
-        payMethod, lines, subtotal, discount, shipping, total,
+        payMethod, lines, subtotal, couponCode, couponDiscount, discount, shipping, total,
       }),
     };
   }
@@ -161,6 +189,8 @@ export class OrdersService {
       deliveryNotes: order.delivery_notes,
       status: order.status,
       subtotalArs: Number(order.subtotal_ars),
+      couponCode: order.coupon_code,
+      couponDiscountArs: Number(order.coupon_discount_ars),
       discountArs: Number(order.discount_ars),
       shippingArs: Number(order.shipping_ars),
       totalArs: Number(order.total_ars),
@@ -206,7 +236,8 @@ export class OrdersService {
     code: string; customerName: string; phone?: string; zone: string; street: string;
     between?: string; deliveryNotes?: string; payMethod?: string;
     lines: Array<{ name: string; quantity: number; lineTotal: number }>;
-    subtotal: number; discount: number; shipping: number; total: number;
+    subtotal: number; couponCode?: string | null; couponDiscount?: number;
+    discount: number; shipping: number; total: number;
   }): string {
     const money = (n: number) => `$${n.toLocaleString('es-AR')}`;
     const rate = Math.round(Number(process.env.CASH_DISCOUNT_RATE || 0.1) * 100);
@@ -227,6 +258,9 @@ export class OrdersService {
     }
 
     text += `\nSubtotal: ${money(o.subtotal)}\n`;
+    if (o.couponDiscount && o.couponDiscount > 0) {
+      text += `Cupón ${o.couponCode}: -${money(o.couponDiscount)}\n`;
+    }
     if (o.discount > 0) {
       text += `Descuento por pago en efectivo (${rate}%): -${money(o.discount)}\n`;
     }
