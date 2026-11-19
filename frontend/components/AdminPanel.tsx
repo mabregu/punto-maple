@@ -33,7 +33,7 @@ interface PendingReview {
   created_at: string;
 }
 
-const STATUSES = ['confirmado', 'pagado', 'preparando', 'en camino', 'entregado', 'cancelado'];
+const STATUSES = ['confirmado', 'preparando', 'en camino', 'entregado', 'cancelado'];
 
 type ProductDraft = { priceArs: string; maplesEquivalent: string; active: boolean };
 
@@ -161,6 +161,9 @@ export default function AdminPanel() {
           <div>
             <h1 className="text-2xl font-black text-gray-900">🥚 Panel de operaciones</h1>
             <p className="text-xs text-gray-500">Punto Maple · Punta Lara</p>
+            <p className="text-[10px] text-gray-400 mt-1">
+              El estado del pago (badge verde) es independiente del estado de entrega (botones).
+            </p>
           </div>
           <div className="flex gap-2">
             <button
@@ -284,7 +287,17 @@ export default function AdminPanel() {
                       <p className="font-black text-gray-900">{o.code}</p>
                       {o.payment_status === 'approved' && (
                         <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded">
-                          PAGADO MP
+                          PAGO APROBADO
+                        </span>
+                      )}
+                      {o.payment_status === 'pending' && (
+                        <span className="bg-yellow-100 text-yellow-800 text-[9px] font-black px-1.5 py-0.5 rounded">
+                          PAGO PENDIENTE
+                        </span>
+                      )}
+                      {(o.payment_status === 'refunded' || o.payment_status === 'charged_back') && (
+                        <span className="bg-red-100 text-red-800 text-[9px] font-black px-1.5 py-0.5 rounded">
+                          REEMBOLSADO
                         </span>
                       )}
                       {o.is_test && (

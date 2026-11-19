@@ -158,9 +158,10 @@ export class PaymentsService {
         [status, code],
       );
     } else if (status === 'approved') {
+      // El pago no cambia el estado de entrega: ese lo maneja el operador en /admin.
       await pool.query(
         `UPDATE orders SET payment_status = 'approved', payment_id = $1, paid_at = now(),
-         status = 'pagado', updated_at = now() WHERE code = $2`,
+         updated_at = now() WHERE code = $2`,
         [String(payment.id), code],
       );
     } else {

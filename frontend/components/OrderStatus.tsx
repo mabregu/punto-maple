@@ -40,6 +40,15 @@ export default function OrderStatus({ code, initialStatus }: Props) {
     };
   }, [code, order?.paymentStatus, retries]);
 
+  const paymentLabel =
+    order?.paymentStatus === 'approved'
+      ? 'Aprobado'
+      : order?.paymentStatus === 'refunded' || order?.paymentStatus === 'charged_back'
+        ? 'Reembolsado'
+        : order?.paymentStatus === 'pending'
+          ? 'Pendiente'
+          : 'No aplica (efectivo/transferencia)';
+
   const approved = order?.paymentStatus === 'approved' || initialStatus === 'approved';
   const rejected = initialStatus === 'rejected' || order?.paymentStatus === 'rejected';
   const pending = initialStatus === 'pending' || order?.paymentStatus === 'pending';
@@ -74,8 +83,12 @@ export default function OrderStatus({ code, initialStatus }: Props) {
         {order && (
           <div className="bg-gray-50 rounded-xl p-4 text-left text-xs space-y-1 mb-6">
             <div className="flex justify-between">
-              <span className="text-gray-500">Estado del pedido</span>
+              <span className="text-gray-500">Estado de entrega</span>
               <span className="font-bold text-gray-900">{order.status}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Estado del pago</span>
+              <span className="font-bold text-gray-900">{paymentLabel}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Medio de pago</span>

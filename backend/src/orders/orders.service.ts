@@ -192,7 +192,7 @@ export class OrdersService {
   }
 
   async updateStatus(code: string, status: string) {
-    const allowed = ['confirmado', 'pagado', 'preparando', 'en camino', 'entregado', 'cancelado'];
+    const allowed = ['confirmado', 'preparando', 'en camino', 'entregado', 'cancelado'];
     if (!allowed.includes(status)) throw new BadRequestException('Estado inválido');
     const { rowCount } = await pool.query(
       `UPDATE orders SET status = $1, updated_at = now() WHERE code = $2`,

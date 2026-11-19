@@ -242,6 +242,16 @@ test('actualiza un precio desde el panel y lo restaura', { skip: !ADMIN_TOKEN },
   }
 });
 
+test('rechaza "pagado" como estado de entrega', { skip: !ADMIN_TOKEN }, async () => {
+  const { body: order } = await postOrder();
+  const { status } = await api(`/api/orders/${order.code}/status`, {
+    method: 'PATCH',
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ status: 'pagado' }),
+  });
+  assert.equal(status, 400);
+});
+
 test('limpia los pedidos de prueba', { skip: !ADMIN_TOKEN }, async () => {
   const { status, body } = await api('/api/orders/test', {
     method: 'DELETE',
